@@ -53,7 +53,7 @@ namespace Graphics
 
         private void simpleOpenGlControl1_KeyPress(object sender, KeyPressEventArgs e)
         {
-            float speed = 5.5f;
+            float speed = 0.5f;
             if (e.KeyChar == 'a')
                 renderer.cam.Strafe(-speed, renderer.skyboxSize);
             if (e.KeyChar == 'd')

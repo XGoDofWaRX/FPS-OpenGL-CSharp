@@ -36,6 +36,7 @@ namespace Graphics
         public Model3D jeep;
         public Model3D jeep2;
         public Model3D house;
+        public Model3D Weapon;
 
         Texture up;
         Texture down;
@@ -43,6 +44,7 @@ namespace Graphics
         Texture right;
         Texture front;
         Texture back;
+        Texture weaponTex;   
 
         mat4 modelmatrix;
         public void Initialize()
@@ -56,6 +58,8 @@ namespace Graphics
             left = new Texture(projectPath + "\\Textures\\SunSetRight2048.png", 5, true);
             front = new Texture(projectPath + "\\Textures\\SunSetFront2048.png", 6, true);
             back = new Texture(projectPath + "\\Textures\\SunSetBack2048.png", 7, true);
+
+            weaponTex = new Texture(projectPath + "\\Textures\\engineflare1.jpg", 8);
 
             //zombie
             zombie = new md2LOL(projectPath + "\\ModelFiles\\zombie.md2");
@@ -87,6 +91,13 @@ namespace Graphics
             jeep2.scalematrix = glm.scale(new mat4(1), new vec3(0.3f, 0.3f, 0.3f));
             jeep2.transmatrix = glm.translate(new mat4(1), new vec3(6, 0, 0));
             jeep2.rotmatrix = glm.rotate((float)((-90.0f / 180) * Math.PI), new vec3(1, 0, 0));
+
+            //Weapon
+            Weapon = new Model3D();
+            Weapon.LoadFile(projectPath + "\\ModelFiles\\models\\3DS\\M4A4", 11, "m4a1.obj");
+            Weapon.scalematrix = glm.scale(new mat4(1), new vec3(0.02f, 0.02f, 0.02f));
+            Weapon.transmatrix = glm.translate(new mat4(1), new vec3(0.15f, 3.6f, 20.4f));
+            Weapon.rotmatrix = glm.rotate((float)(1 * Math.PI), new vec3(0, 1, 0));
 
             float[] skybox = {
                 //up
@@ -325,6 +336,8 @@ namespace Graphics
             house.Draw(transID);
             jeep.Draw(transID);
             jeep2.Draw(transID);
+            weaponTex.Bind();
+            Weapon.Draw(transID);
 
             Gl.glBindBuffer(Gl.GL_ARRAY_BUFFER, vertexBufferID);
             Gl.glUniformMatrix4fv(transID, 1, Gl.GL_FALSE, modelmatrix.to_array());
@@ -355,7 +368,8 @@ namespace Graphics
             ProjectionMatrix = cam.GetProjectionMatrix();
             ViewMatrix = cam.GetViewMatrix();
             zombie.UpdateExportedAnimation();
-            zombie2.UpdateExportedAnimation();            
+            zombie2.UpdateExportedAnimation();
+            Weapon.transmatrix = glm.translate(new mat4(1), new vec3(cam.GetCameraPosition() + new vec3(0.15f, -0.4f, 0.4f)));
         }
         public void SendLightData(float red, float green, float blue, float attenuation, float specularExponent)
         {
