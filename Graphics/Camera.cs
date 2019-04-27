@@ -28,6 +28,11 @@ namespace Graphics
             return mDirection;
         }
 
+        public vec3 GetRightDirection()
+        {
+            return mRight;
+        }
+
         public mat4 GetViewMatrix()
         {
             return mViewMatrix;
@@ -85,26 +90,36 @@ namespace Graphics
             mAngleY += angleDegrees;
         }
 
-        public void Walk(float dist, float maxDist)
+        public bool Walk(float dist, float maxDist)
         {
             if (checkWalk(dist, maxDist))
             {
+                float y = mPosition.y;
                 mPosition += dist * mDirection;
+                mPosition.y = y;
+                return true;
             }
+            return false;
         }
-        public void Strafe(float dist, float maxDist)
+        public bool Strafe(float dist, float maxDist)
         {
             if (checkStrafe(dist, maxDist))
             {
+                float y = mPosition.y;
                 mPosition += dist * mRight;
+                mPosition.y = y;
+                return true;
             }
+            return false;
         }
-        public void Fly(float dist, float maxDist)
+        public bool Fly(float dist, float maxDist)
         {
             if (checkFly(dist, maxDist))
             {
                 mPosition += dist * mUp;
+                return true;
             }
+            return false;
         }
 
         public bool checkWalk(float dist, float maxDist)

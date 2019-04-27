@@ -93,6 +93,7 @@
     <Compile Include="obj\Debug\TemporaryGeneratedFile_036C0B5B-1481-4323-8D20-8F5ADCB23D92.cs" />
     <Compile Include="obj\Debug\TemporaryGeneratedFile_5937a670-0e60-4077-877b-f7221da3dda1.cs" />
     <Compile Include="obj\Debug\TemporaryGeneratedFile_E7A71F73-0F8D-4B9B-B56E-8E70B10BC5D3.cs" />
+    <Compile Include="Player.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Renderer.cs" />
@@ -190,13 +191,6 @@
     <Content Include="ModelFiles\models\obj\spider\SpiderTex.jpg" />
     <Content Include="ModelFiles\models\obj\spider\wal67ar_small.jpg" />
     <Content Include="ModelFiles\models\obj\spider\wal69ar_small.jpg" />
-    <Content Include="ModelFiles\skybox\DarkStormyBack2048.png" />
-    <Content Include="ModelFiles\skybox\DarkStormyDown2048.png" />
-    <Content Include="ModelFiles\skybox\DarkStormyFront2048.png" />
-    <Content Include="ModelFiles\skybox\DarkStormyLeft2048.png" />
-    <Content Include="ModelFiles\skybox\DarkStormyRight2048.png" />
-    <Content Include="ModelFiles\skybox\DarkStormyUp2048.png" />
-    <Content Include="ModelFiles\skybox\Ground.jpg" />
     <Content Include="ModelFiles\zombie.PNG" />
     <Content Include="obj\Debug\Graphics.csproj.FileListAbsolute.txt" />
     <Content Include="obj\Debug\Graphics.exe" />

@@ -19,12 +19,10 @@ namespace Graphics
 
             MoveCursor();
             
-
             initialize();
             deltaTime = 0.005f;
             MainLoopThread = new Thread(MainLoop);
             MainLoopThread.Start();
-
         }
         void initialize()
         {
@@ -53,20 +51,18 @@ namespace Graphics
 
         private void simpleOpenGlControl1_KeyPress(object sender, KeyPressEventArgs e)
         {
-            float speed = 0.5f;
             if (e.KeyChar == 'a')
-                renderer.cam.Strafe(-speed, renderer.skyboxSize);
+                renderer.hero.Strafe(-1, renderer.skyboxSize);
             if (e.KeyChar == 'd')
-                renderer.cam.Strafe(speed, renderer.skyboxSize);
+                renderer.hero.Strafe(1, renderer.skyboxSize);
             if (e.KeyChar == 's')
-                renderer.cam.Walk(-speed, renderer.skyboxSize);
+                renderer.hero.Walk(-1, renderer.skyboxSize);
             if (e.KeyChar == 'w')
-                renderer.cam.Walk(speed, renderer.skyboxSize);
+                renderer.hero.Walk(1, renderer.skyboxSize);
             if (e.KeyChar == 'z')
-                renderer.cam.Fly(-speed, renderer.skyboxSize);
+                renderer.hero.camera.Fly(-1, renderer.skyboxSize);
             if (e.KeyChar == 'c')
-                renderer.cam.Fly(speed, renderer.skyboxSize);
-
+                renderer.hero.camera.Fly(1, renderer.skyboxSize);
         }
 
         float prevX, prevY;
@@ -75,78 +71,18 @@ namespace Graphics
             float speed = 0.05f;
             float delta = e.X - prevX;
             if (delta > 2)
-                renderer.cam.Yaw(-speed);
+                renderer.hero.Yaw(-speed);
             else if (delta < -2)
-                renderer.cam.Yaw(speed);
+                renderer.hero.Yaw(speed);
 
 
             delta = e.Y - prevY;
             if (delta > 2)
-                renderer.cam.Pitch(-speed);
+                renderer.hero.camera.Pitch(-speed);
             else if (delta < -2)
-                renderer.cam.Pitch(speed);
+                renderer.hero.camera.Pitch(speed);
 
             MoveCursor();
-        }
-
-        private void button1_Click(object sender, System.EventArgs e)
-        {
-            //float r = float.Parse(textBox1.Text);
-            //float g = float.Parse(textBox2.Text);
-            //float b = float.Parse(textBox3.Text);
-            //float a = float.Parse(textBox4.Text);
-            //float s = float.Parse(textBox5.Text);
-            //renderer.SendLightData(r, g, b, a, s);
-        }
-
-        private void button2_Click(object sender, EventArgs e)
-        {
-            //renderer.m.StartAnimation(_3D_Models.animType_LOL.STAND);
-        }
-
-        private void button3_Click(object sender, EventArgs e)
-        {
-
-            //renderer.m.StartAnimation(_3D_Models.animType_LOL.ATTACK1);
-        }
-
-        private void button4_Click(object sender, EventArgs e)
-        {
-
-            //renderer.m.StartAnimation(_3D_Models.animType_LOL.ATTACK2);
-        }
-
-        private void button5_Click(object sender, EventArgs e)
-        {
-
-            //renderer.m.StartAnimation(_3D_Models.animType_LOL.RUN);
-        }
-
-        private void button6_Click(object sender, EventArgs e)
-        {
-
-            //renderer.m.StartAnimation(_3D_Models.animType_LOL.SPELL1);
-        }
-
-        private void button7_Click(object sender, EventArgs e)
-        {
-
-            //renderer.m.StartAnimation(_3D_Models.animType_LOL.SPELL2);
-        }
-
-        private void button8_Click(object sender, EventArgs e)
-        {
-
-            //renderer.m.StartAnimation(_3D_Models.animType_LOL.DEATH);
-        }
-
-        private void textBox1_TextChanged(object sender, EventArgs e)
-        {
-            float res = 0;
-            if (float.TryParse(textBox1.Text,out res))
-            {
-                //renderer.m.AnimationSpeed = res;
-            }
         }
 
         private void button1_Click_1(object sender, EventArgs e)

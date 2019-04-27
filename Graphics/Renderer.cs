@@ -8,6 +8,7 @@ using Tao.OpenGl;
 using GlmNet;
 using System.IO;
 using Graphics._3D_Models;
+
 namespace Graphics
 {
     class Renderer
@@ -23,45 +24,40 @@ namespace Graphics
 
         mat4 ProjectionMatrix;
         mat4 ViewMatrix;
-
-        public float Speed = 1;
-        public float skyboxSize = 100.0f;
-
+        mat4 modelmatrix;
+        
         uint vertexBufferID;
-
-        public Camera cam;
-
-        public md2LOL zombie;
-        public md2LOL zombie2;
-        public Model3D jeep;
-        public Model3D jeep2;
-        public Model3D house;
-        public Model3D Weapon;
-
+        
+        // Skybox
+        public float skyboxSize = 200.0f;
         Texture up;
         Texture down;
         Texture left;
         Texture right;
         Texture front;
         Texture back;
-        Texture weaponTex;   
 
-        mat4 modelmatrix;
+        // Player
+        public Player hero;
+
+        /*public md2LOL zombie;
+        public md2LOL zombie2;
+        public Model3D jeep;
+        public Model3D jeep2;
+        public Model3D house;
+        public Model3D Weapon;*/
+
         public void Initialize()
         {
             string projectPath = Directory.GetParent(Environment.CurrentDirectory).Parent.FullName;
             sh = new Shader(projectPath + "\\Shaders\\SimpleVertexShader.vertexshader", projectPath + "\\Shaders\\SimpleFragmentShader.fragmentshader");
 
-            up = new Texture(projectPath + "\\Textures\\SunSetUp2048.png", 2);
-            down = new Texture(projectPath + "\\Textures\\grass.png", 3, true);
-            right = new Texture(projectPath + "\\Textures\\SunSetLeft2048.png", 4, true);
-            left = new Texture(projectPath + "\\Textures\\SunSetRight2048.png", 5, true);
-            front = new Texture(projectPath + "\\Textures\\SunSetFront2048.png", 6, true);
-            back = new Texture(projectPath + "\\Textures\\SunSetBack2048.png", 7, true);
+            float[] skybox = LoadSkybox(projectPath);
+            vertexBufferID = GPU.GenerateBuffer(skybox);
 
-            weaponTex = new Texture(projectPath + "\\Textures\\engineflare1.jpg", 8);
+            hero = new Player();
 
-            //zombie
+            /*//zombie
             zombie = new md2LOL(projectPath + "\\ModelFiles\\zombie.md2");
             zombie.StartAnimation(animType_LOL.ATTACK1);
             zombie.rotationMatrix = glm.rotate((float)((-90.0f / 180) * Math.PI), new vec3(1, 0, 0));
@@ -76,7 +72,8 @@ namespace Graphics
 
             //House
             house = new Model3D();
-            house.LoadFile(projectPath + "\\ModelFiles\\models\\3DS\\House", 9, "house.obj");                       
+            house.LoadFile(projectPath + "\\ModelFiles\\models\\3DS\\House", 9, "house.obj");
+            house.transmatrix = glm.translate(new mat4(1), new vec3(0, 0, -10));
 
             //jeep
             jeep = new Model3D();
@@ -97,7 +94,111 @@ namespace Graphics
             Weapon.LoadFile(projectPath + "\\ModelFiles\\models\\3DS\\M4A4", 11, "m4a1.obj");
             Weapon.scalematrix = glm.scale(new mat4(1), new vec3(0.02f, 0.02f, 0.02f));
             Weapon.transmatrix = glm.translate(new mat4(1), new vec3(0.15f, 3.6f, 20.4f));
-            Weapon.rotmatrix = glm.rotate((float)(1 * Math.PI), new vec3(0, 1, 0));
+            Weapon.rotmatrix = glm.rotate((float)(1 * Math.PI), new vec3(0, 1, 0));*/
+                        
+            Gl.glClearColor(0, 0, 0.4f, 1);
+            //hero.camera = new Camera();
+            //hero.camera.Reset(0, 4, 20, 0, 0, 0, 0, 1, 0);
+
+            ProjectionMatrix = hero.camera.GetProjectionMatrix();
+            ViewMatrix = hero.camera.GetViewMatrix();
+
+            transID = Gl.glGetUniformLocation(sh.ID, "trans");
+            projID = Gl.glGetUniformLocation(sh.ID, "projection");
+            viewID = Gl.glGetUniformLocation(sh.ID, "view");
+
+            modelmatrix = glm.scale(new mat4(1), new vec3(1, 1, 1));
+
+            sh.UseShader();
+
+            DataID = Gl.glGetUniformLocation(sh.ID, "data");
+            vec2 data = new vec2(5, 50);
+            Gl.glUniform2fv(DataID, 1, data.to_array());
+
+            int LightPositionID = Gl.glGetUniformLocation(sh.ID, "LightPosition_worldspace");
+            vec3 lightPosition = new vec3(100.0f, 55.0f, 48.0f);
+            Gl.glUniform3fv(LightPositionID, 1, lightPosition.to_array());
+            //setup the ambient light component.
+            AmbientLightID = Gl.glGetUniformLocation(sh.ID, "ambientLight");
+            vec3 ambientLight = new vec3(1.5f, 1.3f, 1.3f);
+            Gl.glUniform3fv(AmbientLightID, 1, ambientLight.to_array());
+            //setup the eye position.
+            EyePositionID = Gl.glGetUniformLocation(sh.ID, "EyePosition_worldspace");
+            Gl.glEnable(Gl.GL_DEPTH_TEST);
+            Gl.glDepthFunc(Gl.GL_LESS);
+        }
+
+        public void Draw()
+        {
+            Gl.glClear(Gl.GL_COLOR_BUFFER_BIT|Gl.GL_DEPTH_BUFFER_BIT);
+            sh.UseShader();
+
+            Gl.glUniformMatrix4fv(projID, 1, Gl.GL_FALSE, ProjectionMatrix.to_array());
+            Gl.glUniformMatrix4fv(viewID, 1, Gl.GL_FALSE, ViewMatrix.to_array());
+
+            Gl.glUniform3fv(EyePositionID, 1, hero.camera.GetCameraPosition().to_array());
+
+            hero.Draw(transID);
+            /*zombie.Draw(transID);
+            zombie2.Draw(transID);
+            house.Draw(transID);
+            jeep.Draw(transID);
+            jeep2.Draw(transID);
+            weaponTex.Bind();
+            Weapon.Draw(transID);*/
+
+            Gl.glBindBuffer(Gl.GL_ARRAY_BUFFER, vertexBufferID);
+            Gl.glUniformMatrix4fv(transID, 1, Gl.GL_FALSE, modelmatrix.to_array());
+            Gl.glEnableVertexAttribArray(0);
+            Gl.glVertexAttribPointer(0, 3, Gl.GL_FLOAT, Gl.GL_FALSE, 11 * sizeof(float), IntPtr.Zero);
+            Gl.glEnableVertexAttribArray(1);
+            Gl.glVertexAttribPointer(1, 3, Gl.GL_FLOAT, Gl.GL_FALSE, 11 * sizeof(float), (IntPtr)(3 * sizeof(float)));
+            Gl.glEnableVertexAttribArray(2);
+            Gl.glVertexAttribPointer(2, 2, Gl.GL_FLOAT, Gl.GL_FALSE, 11 * sizeof(float), (IntPtr)(6 * sizeof(float)));
+            Gl.glEnableVertexAttribArray(3);
+            Gl.glVertexAttribPointer(3, 3, Gl.GL_FLOAT, Gl.GL_FALSE, 11 * sizeof(float), (IntPtr)(8 * sizeof(float)));
+            up.Bind();
+            Gl.glDrawArrays(Gl.GL_TRIANGLES, 0, 6);
+            down.Bind();
+            Gl.glDrawArrays(Gl.GL_TRIANGLES, 6, 6);
+            left.Bind();
+            Gl.glDrawArrays(Gl.GL_TRIANGLES, 12, 6);
+            right.Bind();
+            Gl.glDrawArrays(Gl.GL_TRIANGLES, 18, 6);
+            front.Bind();
+            Gl.glDrawArrays(Gl.GL_TRIANGLES, 24, 6);
+            back.Bind();
+            Gl.glDrawArrays(Gl.GL_TRIANGLES, 30, 6);
+        }
+        public void Update(float deltaTime)
+        {
+            //cam.UpdateViewMatrix();
+            hero.Update();
+            ProjectionMatrix = hero.camera.GetProjectionMatrix();
+            ViewMatrix = hero.camera.GetViewMatrix();
+            //zombie.UpdateExportedAnimation();
+            //zombie2.UpdateExportedAnimation();
+        }
+        public void SendLightData(float red, float green, float blue, float attenuation, float specularExponent)
+        {
+            vec3 ambientLight = new vec3(red, green, blue);
+            Gl.glUniform3fv(AmbientLightID, 1, ambientLight.to_array());
+            vec2 data = new vec2(attenuation, specularExponent);
+            Gl.glUniform2fv(DataID, 1, data.to_array());
+        }
+        public void CleanUp()
+        {
+            sh.DestroyShader();
+        }
+
+        public float[] LoadSkybox(string projectPath)
+        {
+            up = new Texture(projectPath + "\\Textures\\SunSetUp2048.png", 1);
+            down = new Texture(projectPath + "\\Textures\\grass.png", 2, true);
+            right = new Texture(projectPath + "\\Textures\\SunSetLeft2048.png", 3, true);
+            left = new Texture(projectPath + "\\Textures\\SunSetRight2048.png", 4, true);
+            front = new Texture(projectPath + "\\Textures\\SunSetFront2048.png", 5, true);
+            back = new Texture(projectPath + "\\Textures\\SunSetBack2048.png", 6, true);
 
             float[] skybox = {
                 //up
@@ -286,101 +387,7 @@ namespace Graphics
                  0,1,
                  0,1,0
             };
-            vertexBufferID = GPU.GenerateBuffer(skybox);
-
-            Gl.glClearColor(0, 0, 0.4f, 1);
-            cam = new Camera();
-            cam.Reset(0, 4, 20, 0, 0, 0, 0, 1, 0);
-
-            ProjectionMatrix = cam.GetProjectionMatrix();
-            ViewMatrix = cam.GetViewMatrix();
-
-            transID = Gl.glGetUniformLocation(sh.ID, "trans");
-            projID = Gl.glGetUniformLocation(sh.ID, "projection");
-            viewID = Gl.glGetUniformLocation(sh.ID, "view");
-
-
-            modelmatrix = glm.scale(new mat4(1), new vec3(1, 1, 1));
-
-            sh.UseShader();
-
-            DataID = Gl.glGetUniformLocation(sh.ID, "data");
-            vec2 data = new vec2(5, 50);
-            Gl.glUniform2fv(DataID, 1, data.to_array());
-
-            int LightPositionID = Gl.glGetUniformLocation(sh.ID, "LightPosition_worldspace");
-            vec3 lightPosition = new vec3(100.0f, 55.0f, 48.0f);
-            Gl.glUniform3fv(LightPositionID, 1, lightPosition.to_array());
-            //setup the ambient light component.
-            AmbientLightID = Gl.glGetUniformLocation(sh.ID, "ambientLight");
-            vec3 ambientLight = new vec3(1.5f, 1.3f, 1.3f);
-            Gl.glUniform3fv(AmbientLightID, 1, ambientLight.to_array());
-            //setup the eye position.
-            EyePositionID = Gl.glGetUniformLocation(sh.ID, "EyePosition_worldspace");
-            Gl.glEnable(Gl.GL_DEPTH_TEST);
-            Gl.glDepthFunc(Gl.GL_LESS);
-        }
-
-        public void Draw()
-        {
-            Gl.glClear(Gl.GL_COLOR_BUFFER_BIT|Gl.GL_DEPTH_BUFFER_BIT);
-            sh.UseShader();
-
-            Gl.glUniformMatrix4fv(projID, 1, Gl.GL_FALSE, ProjectionMatrix.to_array());
-            Gl.glUniformMatrix4fv(viewID, 1, Gl.GL_FALSE, ViewMatrix.to_array());
-
-            Gl.glUniform3fv(EyePositionID, 1, cam.GetCameraPosition().to_array());
-
-            zombie.Draw(transID);
-            zombie2.Draw(transID);
-            house.Draw(transID);
-            jeep.Draw(transID);
-            jeep2.Draw(transID);
-            weaponTex.Bind();
-            Weapon.Draw(transID);
-
-            Gl.glBindBuffer(Gl.GL_ARRAY_BUFFER, vertexBufferID);
-            Gl.glUniformMatrix4fv(transID, 1, Gl.GL_FALSE, modelmatrix.to_array());
-            Gl.glEnableVertexAttribArray(0);
-            Gl.glVertexAttribPointer(0, 3, Gl.GL_FLOAT, Gl.GL_FALSE, 11 * sizeof(float), IntPtr.Zero);
-            Gl.glEnableVertexAttribArray(1);
-            Gl.glVertexAttribPointer(1, 3, Gl.GL_FLOAT, Gl.GL_FALSE, 11 * sizeof(float), (IntPtr)(3 * sizeof(float)));
-            Gl.glEnableVertexAttribArray(2);
-            Gl.glVertexAttribPointer(2, 2, Gl.GL_FLOAT, Gl.GL_FALSE, 11 * sizeof(float), (IntPtr)(6 * sizeof(float)));
-            Gl.glEnableVertexAttribArray(3);
-            Gl.glVertexAttribPointer(3, 3, Gl.GL_FLOAT, Gl.GL_FALSE, 11 * sizeof(float), (IntPtr)(8 * sizeof(float)));
-            up.Bind();
-            Gl.glDrawArrays(Gl.GL_TRIANGLES, 0, 6);
-            down.Bind();
-            Gl.glDrawArrays(Gl.GL_TRIANGLES, 6, 6);
-            left.Bind();
-            Gl.glDrawArrays(Gl.GL_TRIANGLES, 12, 6);
-            right.Bind();
-            Gl.glDrawArrays(Gl.GL_TRIANGLES, 18, 6);
-            front.Bind();
-            Gl.glDrawArrays(Gl.GL_TRIANGLES, 24, 6);
-            back.Bind();
-            Gl.glDrawArrays(Gl.GL_TRIANGLES, 30, 6);
-        }
-        public void Update(float deltaTime)
-        {
-            cam.UpdateViewMatrix();
-            ProjectionMatrix = cam.GetProjectionMatrix();
-            ViewMatrix = cam.GetViewMatrix();
-            zombie.UpdateExportedAnimation();
-            zombie2.UpdateExportedAnimation();
-            Weapon.transmatrix = glm.translate(new mat4(1), new vec3(cam.GetCameraPosition() + new vec3(0.15f, -0.4f, 0.4f)));
-        }
-        public void SendLightData(float red, float green, float blue, float attenuation, float specularExponent)
-        {
-            vec3 ambientLight = new vec3(red, green, blue);
-            Gl.glUniform3fv(AmbientLightID, 1, ambientLight.to_array());
-            vec2 data = new vec2(attenuation, specularExponent);
-            Gl.glUniform2fv(DataID, 1, data.to_array());
-        }
-        public void CleanUp()
-        {
-            sh.DestroyShader();
+            return skybox;
         }
     }
 }

@@ -109,6 +109,7 @@ namespace Graphics._3D_Models
         float currframe;
         public md2LOL(string fileName)
         {
+            AnimationSpeed = 0.001f;
             animlist = new List<anim_t>();
             anim_t a1 = new anim_t();
             a1.first_frame = 0; a1.last_frame = 30; a1.fps = 30;
@@ -357,7 +358,7 @@ namespace Graphics._3D_Models
             res.interpol = 0.0f;
 
             animSt  = res;
-            AnimationSpeed = 0.001f;
+            //AnimationSpeed = 0.001f;
             Loop = true;
             currframe = animSt.curr_frame;
             oldframe = currframe;
