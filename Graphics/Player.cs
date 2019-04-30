@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Windows.Forms;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -18,7 +19,7 @@ namespace Graphics
         private float speed;
         private md2LOL model;
         public Camera camera;
-        
+
         public Player()
         {            
             string projectPath = Directory.GetParent(Environment.CurrentDirectory).Parent.FullName;
@@ -30,26 +31,27 @@ namespace Graphics
         {
             health = 100;
             dead = false;
-            speed = 0.5f;
-            model.AnimationSpeed = 0.001f;
-            model.StartAnimation(animType_LOL.STAND);
+            speed = 0.5f;           
             vec3 initialPosition = new vec3(0, 0, 0);
             model.rotationMatrix = glm.rotate((float)((-1.0f) * Math.PI), new vec3(0, 1, 1));
             model.scaleMatrix = glm.scale(new mat4(1), new vec3(0.1f, 0.1f, 0.1f));
             model.TranslationMatrix = glm.translate(new mat4(1), initialPosition);
             camera = new Camera();
             camera.Reset(initialPosition.x, initialPosition.y + 4.5f, initialPosition.z, 0, 0, 0, 0, 1, 0);
+
+            //model.AnimationSpeed = 0.001f;
+            //model.StartAnimation(animType_LOL.STAND);
         }
 
         public void Draw(int matID)
         {
-            model.Draw(matID);
+            //model.Draw(matID);
         }
 
         public void Update()
         {            
             camera.UpdateViewMatrix();
-            model.UpdateExportedAnimation();
+            //model.UpdateExportedAnimation();
         }
 
         public void Yaw(float angleDegrees)

@@ -40,6 +40,9 @@ namespace Graphics
         // Player
         public Player hero;
 
+        // Enemies
+        public Enemy enemy;
+
         /*public md2LOL zombie;
         public md2LOL zombie2;
         public Model3D jeep;
@@ -56,6 +59,7 @@ namespace Graphics
             vertexBufferID = GPU.GenerateBuffer(skybox);
 
             hero = new Player();
+            enemy = new Enemy();
 
             /*//zombie
             zombie = new md2LOL(projectPath + "\\ModelFiles\\zombie.md2");
@@ -139,6 +143,7 @@ namespace Graphics
             Gl.glUniform3fv(EyePositionID, 1, hero.camera.GetCameraPosition().to_array());
 
             hero.Draw(transID);
+            enemy.Draw(transID);
             /*zombie.Draw(transID);
             zombie2.Draw(transID);
             house.Draw(transID);
@@ -174,10 +179,9 @@ namespace Graphics
         {
             //cam.UpdateViewMatrix();
             hero.Update();
+            enemy.Update(hero.camera.GetCameraPosition(), skyboxSize);
             ProjectionMatrix = hero.camera.GetProjectionMatrix();
             ViewMatrix = hero.camera.GetViewMatrix();
-            //zombie.UpdateExportedAnimation();
-            //zombie2.UpdateExportedAnimation();
         }
         public void SendLightData(float red, float green, float blue, float attenuation, float specularExponent)
         {
