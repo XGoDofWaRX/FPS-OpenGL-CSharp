@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Windows.Forms;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -41,14 +42,18 @@ namespace Graphics
         public Player hero;
 
         // Enemies
-        public Enemy enemy;
+        public List<Enemy> enemiesList;
 
-        /*public md2LOL zombie;
-        public md2LOL zombie2;
+        // Weapon
+        public Texture weaponTex;
+
+        // Bullets
+        public List<Bullet> bulletsList;
+
         public Model3D jeep;
         public Model3D jeep2;
         public Model3D house;
-        public Model3D Weapon;*/
+        public Model3D Weapon;
 
         public void Initialize()
         {
@@ -59,47 +64,46 @@ namespace Graphics
             vertexBufferID = GPU.GenerateBuffer(skybox);
 
             hero = new Player();
-            enemy = new Enemy();
-
-            /*//zombie
-            zombie = new md2LOL(projectPath + "\\ModelFiles\\zombie.md2");
-            zombie.StartAnimation(animType_LOL.ATTACK1);
-            zombie.rotationMatrix = glm.rotate((float)((-90.0f / 180) * Math.PI), new vec3(1, 0, 0));
-            zombie.scaleMatrix = glm.scale(new mat4(1), new vec3(0.1f, 0.1f, 0.1f));
-            zombie.TranslationMatrix = glm.translate(new mat4(1), new vec3(10, 0, 0));
-            //zombie2
-            zombie2 = new md2LOL(projectPath + "\\ModelFiles\\zombie.md2");
-            zombie2.StartAnimation(animType_LOL.ATTACK2);
-            zombie2.rotationMatrix = glm.rotate((float)((-90.0f / 180) * Math.PI), new vec3(1, 0, 0));
-            zombie2.scaleMatrix = glm.scale(new mat4(1), new vec3(0.1f, 0.1f, 0.1f));
-            zombie2.TranslationMatrix = glm.translate(new mat4(1), new vec3(-10, 0, 0));            
+            enemiesList = new List<Enemy>();
+            enemiesList.Add(new Enemy());
+            enemiesList.Add(new Enemy());
+            enemiesList.Add(new Enemy());
+            enemiesList.Add(new Enemy());
+            enemiesList.Add(new Enemy());
+            enemiesList.Add(new Enemy());
+            bulletsList = new List<Bullet>();
 
             //House
             house = new Model3D();
             house.LoadFile(projectPath + "\\ModelFiles\\models\\3DS\\House", 9, "house.obj");
-            house.transmatrix = glm.translate(new mat4(1), new vec3(0, 0, -10));
+            house.transmatrix = glm.translate(new mat4(1), new vec3(20, 0, -10));
 
             //jeep
             jeep = new Model3D();
             jeep.LoadFile(projectPath + "\\ModelFiles\\models\\3DS\\jeep", 10, "jeep1.3ds");
             jeep.scalematrix = glm.scale(new mat4(1), new vec3(0.3f, 0.3f, 0.3f));
-            jeep.transmatrix = glm.translate(new mat4(1), new vec3(-6, 0, 0));
+            jeep.transmatrix = glm.translate(new mat4(1), new vec3(14, 0, 0));
             jeep.rotmatrix = glm.rotate((float)((-90.0f / 180) * Math.PI), new vec3(1, 0, 0));
 
             //jeep2
             jeep2 = new Model3D();
             jeep2.LoadFile(projectPath + "\\ModelFiles\\models\\3DS\\jeep", 10, "jeep1.3ds");
             jeep2.scalematrix = glm.scale(new mat4(1), new vec3(0.3f, 0.3f, 0.3f));
-            jeep2.transmatrix = glm.translate(new mat4(1), new vec3(6, 0, 0));
+            jeep2.transmatrix = glm.translate(new mat4(1), new vec3(26, 0, 0));
             jeep2.rotmatrix = glm.rotate((float)((-90.0f / 180) * Math.PI), new vec3(1, 0, 0));
 
             //Weapon
+            weaponTex = new Texture(projectPath + "\\Textures\\engineflare1.jpg", 7);
             Weapon = new Model3D();
             Weapon.LoadFile(projectPath + "\\ModelFiles\\models\\3DS\\M4A4", 11, "m4a1.obj");
-            Weapon.scalematrix = glm.scale(new mat4(1), new vec3(0.02f, 0.02f, 0.02f));
-            Weapon.transmatrix = glm.translate(new mat4(1), new vec3(0.15f, 3.6f, 20.4f));
-            Weapon.rotmatrix = glm.rotate((float)(1 * Math.PI), new vec3(0, 1, 0));*/
-                        
+            Weapon.scalematrix = glm.scale(new mat4(1), new vec3(0.1f, 0.1f, 0.1f));
+            Weapon.transmatrix = glm.translate(new mat4(1), new vec3(hero.camera.GetCameraPosition().x,
+                                                                     hero.camera.GetCameraPosition().y - 1.5f,
+                                                                     hero.camera.GetCameraPosition().z));
+            double angle = glm.atan(hero.camera.GetLookDirection().z, hero.camera.GetLookDirection().x);
+            Weapon.rotmatrix = glm.rotate((float)(0.5f * Math.PI), new vec3(0, 1, 0));
+            Weapon.rotmatrix = glm.rotate(Weapon.rotmatrix, (float)(-angle), new vec3(0, 1, 0));
+
             Gl.glClearColor(0, 0, 0.4f, 1);
             //hero.camera = new Camera();
             //hero.camera.Reset(0, 4, 20, 0, 0, 0, 0, 1, 0);
@@ -143,14 +147,20 @@ namespace Graphics
             Gl.glUniform3fv(EyePositionID, 1, hero.camera.GetCameraPosition().to_array());
 
             hero.Draw(transID);
-            enemy.Draw(transID);
-            /*zombie.Draw(transID);
-            zombie2.Draw(transID);
+            foreach (var enemy in enemiesList)
+            {                
+                enemy.Draw(transID);
+            }
+            foreach (var bullet in bulletsList)
+            {
+                bullet.Draw(transID);
+            }
+
             house.Draw(transID);
             jeep.Draw(transID);
             jeep2.Draw(transID);
             weaponTex.Bind();
-            Weapon.Draw(transID);*/
+            Weapon.Draw(transID);
 
             Gl.glBindBuffer(Gl.GL_ARRAY_BUFFER, vertexBufferID);
             Gl.glUniformMatrix4fv(transID, 1, Gl.GL_FALSE, modelmatrix.to_array());
@@ -179,7 +189,24 @@ namespace Graphics
         {
             //cam.UpdateViewMatrix();
             hero.Update();
-            enemy.Update(hero.camera.GetCameraPosition(), skyboxSize);
+            foreach (var enemy in enemiesList)
+            {
+                enemy.Update(hero.camera.GetCameraPosition(), skyboxSize);
+            }            
+            foreach(var bullet in bulletsList)
+            {
+                if (bullet.Update(skyboxSize))
+                {
+                    //bulletsList.Remove(bullet);
+                }
+            }
+            Weapon.transmatrix = glm.translate(new mat4(1), new vec3(hero.camera.GetCameraPosition().x,
+                                                                     hero.camera.GetCameraPosition().y - 1.5f,
+                                                                     hero.camera.GetCameraPosition().z));
+            double angle = glm.atan(hero.camera.GetLookDirection().z, hero.camera.GetLookDirection().x);
+            Weapon.rotmatrix = glm.rotate((float)(0.5f * Math.PI), new vec3(0, 1, 0));
+            Weapon.rotmatrix = glm.rotate(Weapon.rotmatrix, (float)(-angle), new vec3(0, 1, 0));
+
             ProjectionMatrix = hero.camera.GetProjectionMatrix();
             ViewMatrix = hero.camera.GetViewMatrix();
         }
@@ -392,6 +419,6 @@ namespace Graphics
                  0,1,0
             };
             return skybox;
-        }
+        }      
     }
 }

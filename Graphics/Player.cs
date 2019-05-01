@@ -20,6 +20,10 @@ namespace Graphics
         private md2LOL model;
         public Camera camera;
 
+        double fireRate;
+        double nextFire;
+        DateTime now;
+
         public Player()
         {            
             string projectPath = Directory.GetParent(Environment.CurrentDirectory).Parent.FullName;
@@ -38,7 +42,9 @@ namespace Graphics
             model.TranslationMatrix = glm.translate(new mat4(1), initialPosition);
             camera = new Camera();
             camera.Reset(initialPosition.x, initialPosition.y + 4.5f, initialPosition.z, 0, 0, 0, 0, 1, 0);
-
+            fireRate = 50.0f;
+            nextFire = 0.0f;
+            now = DateTime.Now;
             //model.AnimationSpeed = 0.001f;
             //model.StartAnimation(animType_LOL.STAND);
         }
@@ -51,6 +57,7 @@ namespace Graphics
         public void Update()
         {            
             camera.UpdateViewMatrix();
+            nextFire += (DateTime.Now - now).TotalSeconds;
             //model.UpdateExportedAnimation();
         }
 
@@ -79,6 +86,17 @@ namespace Graphics
                                                         (dir * speed) * new vec3(camera.GetRightDirection().x,
                                                                                  0,
                                                                                  camera.GetRightDirection().z));
+            }
+        }
+
+        public void Fire(List<Bullet> bulletList)
+        {
+            if (nextFire >= fireRate)
+            {
+                Bullet bullet = new Bullet(camera.GetCameraPosition(), camera.GetLookDirection());
+                bulletList.Add(bullet);
+                now = DateTime.Now;
+                nextFire = 0.0f;
             }
         }
 

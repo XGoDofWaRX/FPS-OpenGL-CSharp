@@ -79,6 +79,7 @@
   <ItemGroup>
     <Compile Include="3D Models\md2.cs" />
     <Compile Include="3D Models\md2LOL.cs" />
+    <Compile Include="Bullet.cs" />
     <Compile Include="Camera.cs" />
     <Compile Include="Enemy.cs" />
     <Compile Include="GPU.cs" />

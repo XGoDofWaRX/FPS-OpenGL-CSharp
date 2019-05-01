@@ -63,6 +63,9 @@ namespace Graphics
                 renderer.hero.camera.Fly(-1, renderer.skyboxSize);
             if (e.KeyChar == 'c')
                 renderer.hero.camera.Fly(1, renderer.skyboxSize);
+
+            if (e.KeyChar == 'f')
+                renderer.hero.Fire(renderer.bulletsList);
         }
 
         float prevX, prevY;

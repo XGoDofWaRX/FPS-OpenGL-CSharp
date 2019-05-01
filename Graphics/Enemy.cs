@@ -41,20 +41,22 @@ namespace Graphics
         {
             health = 100;
             dead = false;
-            speed = 0.008f;
+            speed = 0.03f;
             mAngleX = 0;
-            mPosition = new vec3(0, 0, -100);
+            float x = RandomNumber(-70, 70);
+            float z = RandomNumber(-70, 70);
+            mPosition = new vec3(x, 0, z);
             mDirection = new vec3(0, 0, 0) - mPosition;
             mDirection = glm.normalize(mDirection);
             model.rotationMatrix = glm.rotate((float)((-0.5f) * Math.PI), new vec3(1, 0, 0));
             model.scaleMatrix = glm.scale(new mat4(1), new vec3(0.1f, 0.1f, 0.1f));
             model.TranslationMatrix = glm.translate(new mat4(1), mPosition);
-            changeDirectionRate = 10000.0f;
-            directionCounter = 0.0f;
+            changeDirectionRate = 1000.0f;
+            directionCounter = 900.0f;
             now = DateTime.Now;
             state = EnemyStat.RUNNING;
 
-            model.AnimationSpeed = 0.001f;
+            model.AnimationSpeed = 0.003f;
             model.StartAnimation(animType_LOL.RUN);
         }
 
@@ -69,13 +71,13 @@ namespace Graphics
             playerDistance.x = Math.Abs(playerDistance.x);
             playerDistance.z = Math.Abs(playerDistance.z);
             
-            if (playerDistance.x > 20.0f && playerDistance.z > 20.0f )
+            if (playerDistance.x > 50.0f || playerDistance.z > 50.0f)
             {
-                state = EnemyStat.RUNNING;
+                state = EnemyStat.CHASING;
                 if (model.animSt.type != animType_LOL.RUN)
                     model.StartAnimation(animType_LOL.RUN);
             }
-            else if(playerDistance.x < 20.0f && playerDistance.z < 20.0f)
+            else if(playerDistance.x < 50.0f && playerDistance.z < 50.0f)
             {
                 if (playerDistance.x < 3.0f && playerDistance.z < 3.0f)
                 {
