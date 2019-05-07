@@ -15,7 +15,7 @@ namespace Graphics
     enum EnemyStat { IDLE, RUNNING, CHASING, ATTACKING}
     class Enemy
     {
-        private int health;
+        private float health;
         private bool dead;
         private float speed;
         private md2LOL model;
@@ -23,10 +23,6 @@ namespace Graphics
         float mAngleX = 0;
         vec3 mDirection;
         vec3 mPosition;
-
-        double changeDirectionRate;
-        double directionCounter;
-        DateTime now;
 
         public EnemyStat state;
         private AABoundingBox collider;
@@ -40,27 +36,27 @@ namespace Graphics
 
         public void Initialize()
         {
-            health = 100;
+            health = 1.0f;
             dead = false;
-            speed = 0.03f;
+            speed = 0.01f;
             mAngleX = 0;
-            float x = RandomNumber(-70, 70);
-            float z = RandomNumber(-70, 70);
+            float x = RandomNumber(-100, 100);
+            float z = RandomNumber(-100, 100);
             mPosition = new vec3(x, 0, z);
             mDirection = new vec3(0, 0, 0) - mPosition;
             mDirection = glm.normalize(mDirection);
+            float scale_value = 0.05f;
             model.rotationMatrix = glm.rotate((float)((-0.5f) * Math.PI), new vec3(1, 0, 0));
-            model.scaleMatrix = glm.scale(new mat4(1), new vec3(0.1f, 0.1f, 0.1f));
+            model.scaleMatrix = glm.scale(new mat4(1), new vec3(scale_value, scale_value, scale_value));
             model.TranslationMatrix = glm.translate(new mat4(1), mPosition);
-            changeDirectionRate = 1000.0f;
-            directionCounter = 900.0f;
-            now = DateTime.Now;
-            state = EnemyStat.RUNNING;
 
+            state = EnemyStat.RUNNING;
             model.AnimationSpeed = 0.003f;
             model.StartAnimation(animType_LOL.RUN);
 
             collider = new AABoundingBox(model.GetCurrentVertices(model.animSt), ColliderType.Enemy);
+            collider.Scale(scale_value);
+            collider.SetCenter(mPosition);
         }
 
         public void Draw(int matID)
@@ -68,56 +64,31 @@ namespace Graphics
             model.Draw(matID);
         }
 
-        public void Update(vec3 playerPos, float maxDist)
+        public void Update(vec3 playerPos, float maxDist, List<AABoundingBox> objects)
         {
             vec3 playerDistance = playerPos - mPosition;
             playerDistance.x = Math.Abs(playerDistance.x);
             playerDistance.z = Math.Abs(playerDistance.z);
-            
-            if (playerDistance.x > 50.0f || playerDistance.z > 50.0f)
+
+            if (playerDistance.x < 1.0f && playerDistance.z < 1.0f)
+            {
+                state = EnemyStat.ATTACKING;
+                if (model.animSt.type != animType_LOL.ATTACK1)
+                    model.StartAnimation(animType_LOL.ATTACK1);
+            }
+            else
             {
                 state = EnemyStat.CHASING;
                 if (model.animSt.type != animType_LOL.RUN)
                     model.StartAnimation(animType_LOL.RUN);
             }
-            else if(playerDistance.x < 50.0f && playerDistance.z < 50.0f)
-            {
-                if (playerDistance.x < 3.0f && playerDistance.z < 3.0f)
-                {
-                    state = EnemyStat.ATTACKING;
-                    if (model.animSt.type != animType_LOL.ATTACK1)
-                        model.StartAnimation(animType_LOL.ATTACK1);
-                }
-                else
-                {
-                    state = EnemyStat.CHASING;
-                    if (model.animSt.type != animType_LOL.RUN)
-                        model.StartAnimation(animType_LOL.RUN);
-                }
-            }
 
-            switch(state)
+            if (state == EnemyStat.CHASING)
             {
-                case EnemyStat.RUNNING:
-                    directionCounter += (DateTime.Now - now).TotalSeconds;
-                    if (directionCounter >= changeDirectionRate)
-                    {
-                        now = DateTime.Now;
-                        directionCounter = 0.0f;
-                        ChangeDirection();
-                    }
-                    Move(maxDist);
-                    break;
-                case EnemyStat.CHASING:
-                    ChangeDirection(playerPos);
-                    Move(maxDist);
-                    break;
-                case EnemyStat.ATTACKING:
-                    ChangeDirection(playerPos);
-                    break;
+                Move(maxDist, objects);
             }
-            
-            model.UpdateExportedAnimation();                       
+            ChangeDirection(playerPos);
+            model.UpdateExportedAnimation();
         }
        
         public void ChangeDirection()
@@ -147,38 +118,28 @@ namespace Graphics
             mAngleX += angleDegrees;
         }
 
-        public void Move(float maxDist)
+        public void Move(float maxDist, List<AABoundingBox> objects)
         {
-            // TODO Boundary and collisions Checking
-            if (CheckMove(maxDist))
+            vec3 translation_vector = speed * mDirection;
+            if (!Collided(objects, translation_vector))
             {
-                vec3 translation_vector = speed * mDirection;
-                mPosition += translation_vector;
-                model.TranslationMatrix = glm.translate(new mat4(1),
-                                                        new vec3(mPosition.x, mPosition.y, mPosition.z));
-                collider.Translate(translation_vector);
-
+                if (CheckMove(maxDist))
+                {
+                    mPosition += translation_vector;
+                    model.TranslationMatrix = glm.translate(new mat4(1), new vec3(mPosition.x, mPosition.y, mPosition.z));
+                    collider.Translate(translation_vector);
+                }
+                else
+                {
+                    ChangeDirection();
+                }
             }
             else
             {
                 ChangeDirection();
             }
         }
-
-        public AABoundingBox GetCollider()
-        {
-            return collider;
-        }
-        
-        public int GetHealth()
-        {
-            return health;
-        }
-        public bool isDead()
-        {
-            return dead;
-        }
-
+       
         public bool CheckMove(float maxDist)
         {
 
@@ -190,6 +151,31 @@ namespace Graphics
                 return false;
             }
             return true;
+        }
+
+        public bool Collided(List<AABoundingBox> objects, vec3 offset)
+        {
+            for (int i = 0; i < objects.Count; i++)
+            {
+                if (collider.CheckCollision(objects[i], offset))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public AABoundingBox GetCollider()
+        {
+            return collider;
+        }
+        public float GetHealth()
+        {
+            return health;
+        }
+        public bool isDead()
+        {
+            return dead;
         }
 
         // Generate a random number between two numbers

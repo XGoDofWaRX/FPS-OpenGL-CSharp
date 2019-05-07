@@ -14,7 +14,7 @@ namespace Graphics
 {
     class Player
     {
-        private int health;
+        private float health;
         private bool dead;
         private float speed;
         private md2LOL model;
@@ -36,15 +36,16 @@ namespace Graphics
 
         public void Initialize()
         {
-            health = 100;
+            health = 1.0f;
             dead = false;
             speed = 0.5f;           
             mPosition = new vec3(0, 0, 0);
+            float scale_value = 0.05f;
             model.rotationMatrix = glm.rotate((float)((-1.0f) * Math.PI), new vec3(0, 1, 1));
-            model.scaleMatrix = glm.scale(new mat4(1), new vec3(0.1f, 0.1f, 0.1f));
+            model.scaleMatrix = glm.scale(new mat4(1), new vec3(scale_value, scale_value, scale_value));
             model.TranslationMatrix = glm.translate(new mat4(1), mPosition);
             camera = new Camera();
-            camera.Reset(mPosition.x, mPosition.y + 4.5f, mPosition.z, 0, 0, 0, 0, 1, 0);
+            camera.Reset(mPosition.x, mPosition.y + 2.25f, mPosition.z, 0, 0, 0, 0, 1, 0);
             fireRate = 50.0f;
             nextFire = 0.0f;
             now = DateTime.Now;
@@ -52,7 +53,7 @@ namespace Graphics
             //model.StartAnimation(animType_LOL.STAND);
 
             collider = new AABoundingBox(model.GetCurrentVertices(model.animSt), ColliderType.Player);
-            collider.Scale(new vec3(0.1f, 0.1f, 0.1f));
+            collider.Scale(scale_value);
             collider.SetCenter(mPosition);
         }
 
@@ -115,26 +116,6 @@ namespace Graphics
             }
         }
 
-        public bool isDead()
-        {
-            return dead;
-        }
-
-        public int GetHealth()
-        {
-            return health;
-        }
-
-        public vec3 GetPosition()
-        {
-            return mPosition;
-        }
-
-        public AABoundingBox GetCollider()
-        {
-            return collider;
-        }
-
         public bool Collided(List<AABoundingBox> objects, vec3 offset)
         {
             for (int i = 0; i < objects.Count; i++)
@@ -146,5 +127,23 @@ namespace Graphics
             }
             return false;
         }
+
+        public bool isDead()
+        {
+            return dead;
+        }
+        public float GetHealth()
+        {
+            return health;
+        }
+        public vec3 GetPosition()
+        {
+            return mPosition;
+        }
+        public AABoundingBox GetCollider()
+        {
+            return collider;
+        }
+
     }
 }

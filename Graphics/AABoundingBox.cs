@@ -51,7 +51,13 @@ namespace Graphics
                              Math.Abs(maxVertex.z - minVertex.z));
             halfSize = new vec3(size / 2.0f);
         }
-        
+
+        public void Scale(float scale)
+        {
+            vec3 scaleVec = new vec3(scale, scale, scale);
+            Scale(scaleVec);
+        }
+
         public void Scale(float scaleX, float scaleY, float scaleZ)
         {
             vec3 scaleVec = new vec3(scaleX, scaleY, scaleZ);

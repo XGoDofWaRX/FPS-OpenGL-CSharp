@@ -14,14 +14,14 @@ namespace Graphics
 {
     class Bullet
     {
-        private int damage;       
+        private float damage;       
         private float speed;
         private Texture bulletTex;
         private Model3D model;
 
         vec3 mDirection;
         vec3 mPosition;
-
+        float maxDistance;
         private AABoundingBox collider;
 
         public Bullet(vec3 pos, vec3 dir)
@@ -35,17 +35,21 @@ namespace Graphics
 
         public void Initialize(vec3 pos, vec3 dir)
         {
-            damage = 25;
+            damage = 0.25f;
             speed = 0.05f;
+            maxDistance = 50.0f;
             mPosition = pos;
             mDirection = dir;
             mDirection = glm.normalize(mDirection);
+            float scale_value = 0.005f;
             double angle = glm.atan(mDirection.z, mDirection.x);
             model.rotmatrix = glm.rotate((float)(-angle), new vec3(0, 1, 0));
-            model.scalematrix = glm.scale(new mat4(1), new vec3(0.005f, 0.005f, 0.005f));
-            model.transmatrix = glm.translate(new mat4(1), pos);
+            model.scalematrix = glm.scale(new mat4(1), new vec3(scale_value, scale_value, scale_value));
+            model.transmatrix = glm.translate(new mat4(1), mPosition);
 
             collider = new AABoundingBox(model.GetCurrentVertices(), ColliderType.Bullet);
+            collider.Scale(scale_value);
+            collider.SetCenter(mPosition);
         }
 
         public void Draw(int matID)
@@ -54,10 +58,10 @@ namespace Graphics
             model.Draw(matID);
         }
 
-        public bool Update(float maxDist)
-        {
-            Move();
-            if(!CheckMove(maxDist))
+        public bool Update(List<AABoundingBox> objects)
+        {            
+            maxDistance -= speed;
+            if(FinishedMoving() || Collided(objects))
             {
                 return true;
             }
@@ -68,28 +72,35 @@ namespace Graphics
         {
             vec3 translation_vector = speed * mDirection;
             mPosition += translation_vector;
-            model.transmatrix = glm.translate(new mat4(1),
-                                                    new vec3(mPosition.x, mPosition.y, mPosition.z));
+            model.transmatrix = glm.translate(new mat4(1), new vec3(mPosition.x, mPosition.y, mPosition.z));
             collider.Translate(translation_vector);
         }
 
-        public bool CheckMove(float maxDist)
-        {
-            if (mPosition.x > maxDist
-                || mPosition.x < -maxDist
-                || mPosition.z > maxDist
-                || mPosition.z < -maxDist)
+        public bool FinishedMoving()
+        {            
+            if (maxDistance <= 0)
             {
-                return false;
+                return true;
             }
-            return true;
+            return false;
         }
 
-        public int GetDamage()
+        public bool Collided(List<AABoundingBox> objects)
+        {
+            for (int i = 0; i < objects.Count; i++)
+            {
+                if (collider.CheckCollision(objects[i], new vec3(0)))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public float GetDamage()
         {
             return damage;
         }
-
         public AABoundingBox GetCollider()
         {
             return collider;

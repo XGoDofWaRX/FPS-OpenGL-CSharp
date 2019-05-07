@@ -40,21 +40,18 @@ namespace Graphics
 
         // Player
         public Player hero;
-
         // Enemies
         public List<Enemy> enemiesList;
-
         // Weapon
         public Texture weaponTex;
-
         // Bullets
         public List<Bullet> bulletsList;
-
+        // Obstacles
         public Model3D jeep;
         public Model3D jeep2;
         public Model3D house;
         public Model3D Weapon;
-
+        // Colliders for Obstacles
         public List<AABoundingBox> ObstaclesColliders;
 
         public void Initialize()
@@ -206,11 +203,11 @@ namespace Graphics
             hero.Update();
             foreach (var enemy in enemiesList)
             {
-                enemy.Update(hero.GetPosition(), skyboxSize);
+                enemy.Update(hero.GetPosition(), skyboxSize, ObstaclesColliders);
             }            
             foreach(var bullet in bulletsList)
             {
-                if (bullet.Update(skyboxSize))
+                if (bullet.Update(ObstaclesColliders))
                 {
                     //bulletsList.Remove(bullet);
                 }
