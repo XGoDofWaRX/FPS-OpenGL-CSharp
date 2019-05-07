@@ -52,13 +52,13 @@ namespace Graphics
         private void simpleOpenGlControl1_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (e.KeyChar == 'a')
-                renderer.hero.Strafe(-1, renderer.skyboxSize);
+                renderer.hero.Strafe(-1, renderer.skyboxSize, renderer.ObstaclesColliders);
             if (e.KeyChar == 'd')
-                renderer.hero.Strafe(1, renderer.skyboxSize);
+                renderer.hero.Strafe(1, renderer.skyboxSize, renderer.ObstaclesColliders);
             if (e.KeyChar == 's')
-                renderer.hero.Walk(-1, renderer.skyboxSize);
+                renderer.hero.Walk(-1, renderer.skyboxSize, renderer.ObstaclesColliders);
             if (e.KeyChar == 'w')
-                renderer.hero.Walk(1, renderer.skyboxSize);
+                renderer.hero.Walk(1, renderer.skyboxSize, renderer.ObstaclesColliders);
             if (e.KeyChar == 'z')
                 renderer.hero.camera.Fly(-1, renderer.skyboxSize);
             if (e.KeyChar == 'c')

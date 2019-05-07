@@ -112,5 +112,18 @@ namespace Graphics
                 meshes[i].Draw(matID,scalematrix,rotmatrix,transmatrix);
             }
         }
+
+        public List<vec3> GetCurrentVertices()
+        {
+            List<vec3> verts = new List<vec3>();
+            for (int i = 0; i < meshes.Count; i++) 
+            {
+                for (int j = 0; j < meshes[i].vertices.Count; j++) 
+                {
+                    verts.Add(meshes[i].vertices[j]);
+                }
+            }
+            return verts;
+        }
     }
 }

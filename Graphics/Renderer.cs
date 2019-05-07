@@ -55,6 +55,8 @@ namespace Graphics
         public Model3D house;
         public Model3D Weapon;
 
+        public List<AABoundingBox> ObstaclesColliders;
+
         public void Initialize()
         {
             string projectPath = Directory.GetParent(Environment.CurrentDirectory).Parent.FullName;
@@ -73,10 +75,15 @@ namespace Graphics
             enemiesList.Add(new Enemy());
             bulletsList = new List<Bullet>();
 
+            ObstaclesColliders = new List<AABoundingBox>();
+
             //House
             house = new Model3D();
             house.LoadFile(projectPath + "\\ModelFiles\\models\\3DS\\House", 9, "house.obj");
             house.transmatrix = glm.translate(new mat4(1), new vec3(20, 0, -10));
+            AABoundingBox box = new AABoundingBox(house.GetCurrentVertices(), ColliderType.Obstacle);
+            box.SetCenter(new vec3(20, 0, -10));
+            ObstaclesColliders.Add(box);
 
             //jeep
             jeep = new Model3D();
@@ -84,6 +91,10 @@ namespace Graphics
             jeep.scalematrix = glm.scale(new mat4(1), new vec3(0.3f, 0.3f, 0.3f));
             jeep.transmatrix = glm.translate(new mat4(1), new vec3(14, 0, 0));
             jeep.rotmatrix = glm.rotate((float)((-90.0f / 180) * Math.PI), new vec3(1, 0, 0));
+            box = new AABoundingBox(jeep.GetCurrentVertices(), ColliderType.Obstacle);
+            box.Scale(new vec3(0.3f, 0.3f, 0.3f));
+            box.SetCenter(new vec3(14, 0, 0));
+            ObstaclesColliders.Add(box);
 
             //jeep2
             jeep2 = new Model3D();
@@ -91,6 +102,10 @@ namespace Graphics
             jeep2.scalematrix = glm.scale(new mat4(1), new vec3(0.3f, 0.3f, 0.3f));
             jeep2.transmatrix = glm.translate(new mat4(1), new vec3(26, 0, 0));
             jeep2.rotmatrix = glm.rotate((float)((-90.0f / 180) * Math.PI), new vec3(1, 0, 0));
+            box = new AABoundingBox(jeep2.GetCurrentVertices(), ColliderType.Obstacle);
+            box.Scale(new vec3(0.3f, 0.3f, 0.3f));
+            box.SetCenter(new vec3(26, 0, 0));
+            ObstaclesColliders.Add(box);
 
             //Weapon
             weaponTex = new Texture(projectPath + "\\Textures\\engineflare1.jpg", 7);
@@ -191,7 +206,7 @@ namespace Graphics
             hero.Update();
             foreach (var enemy in enemiesList)
             {
-                enemy.Update(hero.camera.GetCameraPosition(), skyboxSize);
+                enemy.Update(hero.GetPosition(), skyboxSize);
             }            
             foreach(var bullet in bulletsList)
             {

@@ -29,6 +29,7 @@ namespace Graphics
         DateTime now;
 
         public EnemyStat state;
+        private AABoundingBox collider;
 
         public Enemy()
         {
@@ -58,6 +59,8 @@ namespace Graphics
 
             model.AnimationSpeed = 0.003f;
             model.StartAnimation(animType_LOL.RUN);
+
+            collider = new AABoundingBox(model.GetCurrentVertices(model.animSt), ColliderType.Enemy);
         }
 
         public void Draw(int matID)
@@ -149,14 +152,22 @@ namespace Graphics
             // TODO Boundary and collisions Checking
             if (CheckMove(maxDist))
             {
-                mPosition += speed * mDirection;
+                vec3 translation_vector = speed * mDirection;
+                mPosition += translation_vector;
                 model.TranslationMatrix = glm.translate(new mat4(1),
-                                                        new vec3(mPosition.x, 0, mPosition.z));
+                                                        new vec3(mPosition.x, mPosition.y, mPosition.z));
+                collider.Translate(translation_vector);
+
             }
             else
             {
                 ChangeDirection();
             }
+        }
+
+        public AABoundingBox GetCollider()
+        {
+            return collider;
         }
         
         public int GetHealth()

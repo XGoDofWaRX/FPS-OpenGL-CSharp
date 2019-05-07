@@ -22,6 +22,8 @@ namespace Graphics
         vec3 mDirection;
         vec3 mPosition;
 
+        private AABoundingBox collider;
+
         public Bullet(vec3 pos, vec3 dir)
         {          
             string projectPath = Directory.GetParent(Environment.CurrentDirectory).Parent.FullName;
@@ -42,6 +44,8 @@ namespace Graphics
             model.rotmatrix = glm.rotate((float)(-angle), new vec3(0, 1, 0));
             model.scalematrix = glm.scale(new mat4(1), new vec3(0.005f, 0.005f, 0.005f));
             model.transmatrix = glm.translate(new mat4(1), pos);
+
+            collider = new AABoundingBox(model.GetCurrentVertices(), ColliderType.Bullet);
         }
 
         public void Draw(int matID)
@@ -62,9 +66,11 @@ namespace Graphics
 
         public void Move()
         {
-            mPosition += speed * mDirection;
+            vec3 translation_vector = speed * mDirection;
+            mPosition += translation_vector;
             model.transmatrix = glm.translate(new mat4(1),
                                                     new vec3(mPosition.x, mPosition.y, mPosition.z));
+            collider.Translate(translation_vector);
         }
 
         public bool CheckMove(float maxDist)
@@ -82,6 +88,11 @@ namespace Graphics
         public int GetDamage()
         {
             return damage;
+        }
+
+        public AABoundingBox GetCollider()
+        {
+            return collider;
         }
     }
 }

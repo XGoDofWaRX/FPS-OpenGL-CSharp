@@ -20,6 +20,9 @@ namespace Graphics
         private md2LOL model;
         public Camera camera;
 
+        vec3 mPosition;
+        private AABoundingBox collider;
+
         double fireRate;
         double nextFire;
         DateTime now;
@@ -36,17 +39,21 @@ namespace Graphics
             health = 100;
             dead = false;
             speed = 0.5f;           
-            vec3 initialPosition = new vec3(0, 0, 0);
+            mPosition = new vec3(0, 0, 0);
             model.rotationMatrix = glm.rotate((float)((-1.0f) * Math.PI), new vec3(0, 1, 1));
             model.scaleMatrix = glm.scale(new mat4(1), new vec3(0.1f, 0.1f, 0.1f));
-            model.TranslationMatrix = glm.translate(new mat4(1), initialPosition);
+            model.TranslationMatrix = glm.translate(new mat4(1), mPosition);
             camera = new Camera();
-            camera.Reset(initialPosition.x, initialPosition.y + 4.5f, initialPosition.z, 0, 0, 0, 0, 1, 0);
+            camera.Reset(mPosition.x, mPosition.y + 4.5f, mPosition.z, 0, 0, 0, 0, 1, 0);
             fireRate = 50.0f;
             nextFire = 0.0f;
             now = DateTime.Now;
             //model.AnimationSpeed = 0.001f;
             //model.StartAnimation(animType_LOL.STAND);
+
+            collider = new AABoundingBox(model.GetCurrentVertices(model.animSt), ColliderType.Player);
+            collider.Scale(new vec3(0.1f, 0.1f, 0.1f));
+            collider.SetCenter(mPosition);
         }
 
         public void Draw(int matID)
@@ -67,25 +74,33 @@ namespace Graphics
             model.rotationMatrix = glm.rotate(model.rotationMatrix, angleDegrees, new vec3(0, 0, 1));            
         }
 
-        public void Walk(int dir, float maxDist)
-        {
-            if (camera.Walk(dir * speed, maxDist))
+        public void Walk(int dir, float maxDist, List<AABoundingBox> objects)
+        {            
+            vec3 translation_vector = (dir * speed) * camera.GetLookDirection();
+            translation_vector.y = 0;
+            if (!Collided(objects, translation_vector))
             {
-                model.TranslationMatrix = glm.translate(model.TranslationMatrix,
-                                                        (dir * speed) * new vec3(camera.GetLookDirection().x,
-                                                                                 0,
-                                                                                 camera.GetLookDirection().z));
+                if (camera.Walk(dir * speed, maxDist))
+                {
+                    mPosition += translation_vector;                 
+                    model.TranslationMatrix = glm.translate(model.TranslationMatrix, translation_vector);
+                    collider.Translate(translation_vector);
+                }
             }
         }
 
-        public void Strafe(int dir, float maxDist)
+        public void Strafe(int dir, float maxDist, List<AABoundingBox> objects)
         {
-            if (camera.Strafe(dir * speed, maxDist))
+            vec3 translation_vector = (dir * speed) * camera.GetRightDirection();
+            translation_vector.y = 0;
+            if (!Collided(objects, translation_vector))
             {
-                model.TranslationMatrix = glm.translate(model.TranslationMatrix,
-                                                        (dir * speed) * new vec3(camera.GetRightDirection().x,
-                                                                                 0,
-                                                                                 camera.GetRightDirection().z));
+                if (camera.Strafe(dir * speed, maxDist))
+                {
+                    mPosition += translation_vector;
+                    model.TranslationMatrix = glm.translate(model.TranslationMatrix, translation_vector);
+                    collider.Translate(translation_vector);
+                }
             }
         }
 
@@ -108,6 +123,28 @@ namespace Graphics
         public int GetHealth()
         {
             return health;
+        }
+
+        public vec3 GetPosition()
+        {
+            return mPosition;
+        }
+
+        public AABoundingBox GetCollider()
+        {
+            return collider;
+        }
+
+        public bool Collided(List<AABoundingBox> objects, vec3 offset)
+        {
+            for (int i = 0; i < objects.Count; i++)
+            {
+                if(collider.CheckCollision(objects[i], offset))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }
