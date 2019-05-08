@@ -12,7 +12,7 @@ using Graphics._3D_Models;
 
 namespace Graphics
 {
-    enum EnemyStat { IDLE, RUNNING, CHASING, ATTACKING}
+    enum EnemyStat { IDLE, RUNNING, CHASING, ATTACKING, DYING}
     class Enemy
     {
         private float health;
@@ -26,6 +26,7 @@ namespace Graphics
 
         public EnemyStat state;
         private AABoundingBox collider;
+        private HealthBar healthBar;        
 
         public Enemy()
         {
@@ -40,55 +41,81 @@ namespace Graphics
             dead = false;
             speed = 0.01f;
             mAngleX = 0;
-            float x = RandomNumber(-100, 100);
-            float z = RandomNumber(-100, 100);
+            float x = RandomNumber(-50, 50);
+            float z = RandomNumber(-50, 50);
             mPosition = new vec3(x, 0, z);
             mDirection = new vec3(0, 0, 0) - mPosition;
             mDirection = glm.normalize(mDirection);
             float scale_value = 0.05f;
+            vec3 scale_vec = new vec3(scale_value);
             model.rotationMatrix = glm.rotate((float)((-0.5f) * Math.PI), new vec3(1, 0, 0));
-            model.scaleMatrix = glm.scale(new mat4(1), new vec3(scale_value, scale_value, scale_value));
+            model.scaleMatrix = glm.scale(new mat4(1), scale_vec);
             model.TranslationMatrix = glm.translate(new mat4(1), mPosition);
 
-            state = EnemyStat.RUNNING;
+            state = EnemyStat.IDLE;
             model.AnimationSpeed = 0.003f;
-            model.StartAnimation(animType_LOL.RUN);
+            model.StartAnimation(animType_LOL.STAND);
 
             collider = new AABoundingBox(model.GetCurrentVertices(model.animSt), ColliderType.Enemy);
-            collider.Scale(scale_value);
+            collider.Scale(scale_vec);
             collider.SetCenter(mPosition);
+
+            healthBar = new HealthBar(mPosition, health, HealthType.Enemy);
         }
 
         public void Draw(int matID)
         {
             model.Draw(matID);
+            if(state != EnemyStat.DYING)
+                healthBar.drawHealth(health);
         }
 
         public void Update(vec3 playerPos, float maxDist, List<AABoundingBox> objects)
         {
-            vec3 playerDistance = playerPos - mPosition;
-            playerDistance.x = Math.Abs(playerDistance.x);
-            playerDistance.z = Math.Abs(playerDistance.z);
+            if (!dead)
+            {
+                vec3 playerDistance = playerPos - mPosition;
+                playerDistance.x = Math.Abs(playerDistance.x);
+                playerDistance.z = Math.Abs(playerDistance.z);
 
-            if (playerDistance.x < 1.0f && playerDistance.z < 1.0f)
-            {
-                state = EnemyStat.ATTACKING;
-                if (model.animSt.type != animType_LOL.ATTACK1)
-                    model.StartAnimation(animType_LOL.ATTACK1);
-            }
-            else
-            {
-                state = EnemyStat.CHASING;
-                if (model.animSt.type != animType_LOL.RUN)
-                    model.StartAnimation(animType_LOL.RUN);
-            }
+                if (playerDistance.x < 1.0f && playerDistance.z < 1.0f)
+                {
+                    state = EnemyStat.ATTACKING;
+                    model.AnimationSpeed = 0.03f;
+                    if (model.animSt.type != animType_LOL.ATTACK1)
+                        model.StartAnimation(animType_LOL.ATTACK1);
+                }
+                else
+                {
+                    state = EnemyStat.CHASING;
+                    model.AnimationSpeed = 0.003f;
+                    if (model.animSt.type != animType_LOL.RUN)
+                        model.StartAnimation(animType_LOL.RUN);
+                }
 
-            if (state == EnemyStat.CHASING)
-            {
-                Move(maxDist, objects);
+                if (health <= 0 && state != EnemyStat.DYING)
+                {
+                    state = EnemyStat.DYING;
+                    model.AnimationSpeed = 0.003f;
+                    if (model.animSt.type != animType_LOL.DEATH)
+                        model.StartAnimation(animType_LOL.DEATH);
+                }
+
+                if (state == EnemyStat.CHASING)
+                {
+                    Move(maxDist, objects);
+                }
+                else if (state == EnemyStat.DYING)
+                {
+                    if (model.animSt.curr_frame == model.animSt.endframe)
+                    {
+                        dead = true;
+                    }
+                }
+                ChangeDirection(playerPos);
+                model.UpdateExportedAnimation();
+                //healthBar.Update(mPosition);
             }
-            ChangeDirection(playerPos);
-            model.UpdateExportedAnimation();
         }
        
         public void ChangeDirection()

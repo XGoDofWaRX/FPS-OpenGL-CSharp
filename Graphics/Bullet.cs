@@ -36,19 +36,20 @@ namespace Graphics
         public void Initialize(vec3 pos, vec3 dir)
         {
             damage = 0.25f;
-            speed = 0.05f;
-            maxDistance = 50.0f;
+            speed = 0.1f;
+            maxDistance = 100.0f;
             mPosition = pos;
             mDirection = dir;
             mDirection = glm.normalize(mDirection);
             float scale_value = 0.005f;
+            vec3 scale_vec = new vec3(scale_value);
             double angle = glm.atan(mDirection.z, mDirection.x);
             model.rotmatrix = glm.rotate((float)(-angle), new vec3(0, 1, 0));
-            model.scalematrix = glm.scale(new mat4(1), new vec3(scale_value, scale_value, scale_value));
+            model.scalematrix = glm.scale(new mat4(1), scale_vec);
             model.transmatrix = glm.translate(new mat4(1), mPosition);
 
             collider = new AABoundingBox(model.GetCurrentVertices(), ColliderType.Bullet);
-            collider.Scale(scale_value);
+            collider.Scale(scale_vec);
             collider.SetCenter(mPosition);
         }
 
@@ -61,6 +62,7 @@ namespace Graphics
         public bool Update(List<AABoundingBox> objects)
         {            
             maxDistance -= speed;
+            Move();
             if(FinishedMoving() || Collided(objects))
             {
                 return true;

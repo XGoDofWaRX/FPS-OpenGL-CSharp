@@ -90,6 +90,7 @@
     <Compile Include="GraphicsForm.Designer.cs">
       <DependentUpon>GraphicsForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="HealthBar.cs" />
     <Compile Include="MathHelper.cs" />
     <Compile Include="Model.cs" />
     <Compile Include="3D Models\Model3D.cs" />

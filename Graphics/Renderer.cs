@@ -65,14 +65,10 @@ namespace Graphics
             hero = new Player();
             enemiesList = new List<Enemy>();
             enemiesList.Add(new Enemy());
-            enemiesList.Add(new Enemy());
-            enemiesList.Add(new Enemy());
-            enemiesList.Add(new Enemy());
-            enemiesList.Add(new Enemy());
+            ObstaclesColliders = new List<AABoundingBox>();
             enemiesList.Add(new Enemy());
             bulletsList = new List<Bullet>();
-
-            ObstaclesColliders = new List<AABoundingBox>();
+            enemiesList.Add(new Enemy());
 
             //House
             house = new Model3D();
@@ -81,7 +77,9 @@ namespace Graphics
             AABoundingBox box = new AABoundingBox(house.GetCurrentVertices(), ColliderType.Obstacle);
             box.SetCenter(new vec3(20, 0, -10));
             ObstaclesColliders.Add(box);
-
+            ////////////////////////////
+            enemiesList.Add(new Enemy());
+            ///////////////////////////////
             //jeep
             jeep = new Model3D();
             jeep.LoadFile(projectPath + "\\ModelFiles\\models\\3DS\\jeep", 10, "jeep1.3ds");
@@ -92,7 +90,9 @@ namespace Graphics
             box.Scale(new vec3(0.3f, 0.3f, 0.3f));
             box.SetCenter(new vec3(14, 0, 0));
             ObstaclesColliders.Add(box);
-
+            ////////////////////////////
+            enemiesList.Add(new Enemy());
+            ///////////////////////////////
             //jeep2
             jeep2 = new Model3D();
             jeep2.LoadFile(projectPath + "\\ModelFiles\\models\\3DS\\jeep", 10, "jeep1.3ds");
@@ -103,7 +103,9 @@ namespace Graphics
             box.Scale(new vec3(0.3f, 0.3f, 0.3f));
             box.SetCenter(new vec3(26, 0, 0));
             ObstaclesColliders.Add(box);
-
+            ////////////////////////////
+            enemiesList.Add(new Enemy());
+            ///////////////////////////////
             //Weapon
             weaponTex = new Texture(projectPath + "\\Textures\\engineflare1.jpg", 7);
             Weapon = new Model3D();
@@ -150,6 +152,7 @@ namespace Graphics
 
         public void Draw()
         {
+            
             Gl.glClear(Gl.GL_COLOR_BUFFER_BIT|Gl.GL_DEPTH_BUFFER_BIT);
             sh.UseShader();
 
@@ -199,17 +202,17 @@ namespace Graphics
         }
         public void Update(float deltaTime)
         {
-            //cam.UpdateViewMatrix();
             hero.Update();
             foreach (var enemy in enemiesList)
             {
                 enemy.Update(hero.GetPosition(), skyboxSize, ObstaclesColliders);
-            }            
-            foreach(var bullet in bulletsList)
+            }
+            for (int i = 0; i < bulletsList.Count; i++)
             {
-                if (bullet.Update(ObstaclesColliders))
+                if (bulletsList[i].Update(ObstaclesColliders))
                 {
-                    //bulletsList.Remove(bullet);
+                    bulletsList.Remove(bulletsList[i]);
+                    i--;
                 }
             }
             Weapon.transmatrix = glm.translate(new mat4(1), new vec3(hero.camera.GetCameraPosition().x,

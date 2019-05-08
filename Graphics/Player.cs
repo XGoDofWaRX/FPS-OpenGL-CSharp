@@ -22,9 +22,10 @@ namespace Graphics
 
         vec3 mPosition;
         private AABoundingBox collider;
+        private HealthBar healthBar;
 
-        double fireRate;
-        double nextFire;
+        float fireRate;
+        float nextFire;
         DateTime now;
 
         public Player()
@@ -38,34 +39,40 @@ namespace Graphics
         {
             health = 1.0f;
             dead = false;
-            speed = 0.5f;           
+            speed = 0.5f;
             mPosition = new vec3(0, 0, 0);
             float scale_value = 0.05f;
+            vec3 scale_vec = new vec3(scale_value);
             model.rotationMatrix = glm.rotate((float)((-1.0f) * Math.PI), new vec3(0, 1, 1));
-            model.scaleMatrix = glm.scale(new mat4(1), new vec3(scale_value, scale_value, scale_value));
+            model.scaleMatrix = glm.scale(new mat4(1), scale_vec);
             model.TranslationMatrix = glm.translate(new mat4(1), mPosition);
             camera = new Camera();
             camera.Reset(mPosition.x, mPosition.y + 2.25f, mPosition.z, 0, 0, 0, 0, 1, 0);
-            fireRate = 50.0f;
+            fireRate = 0.25f;
             nextFire = 0.0f;
             now = DateTime.Now;
             //model.AnimationSpeed = 0.001f;
             //model.StartAnimation(animType_LOL.STAND);
 
             collider = new AABoundingBox(model.GetCurrentVertices(model.animSt), ColliderType.Player);
-            collider.Scale(scale_value);
+            collider.Scale(scale_vec);
             collider.SetCenter(mPosition);
+
+            healthBar = new HealthBar(mPosition, health, HealthType.Player);
         }
 
         public void Draw(int matID)
         {
-            //model.Draw(matID);
+            model.Draw(matID);
+            healthBar.drawHealth(health);
         }
 
         public void Update()
-        {            
+        {
             camera.UpdateViewMatrix();
-            nextFire += (DateTime.Now - now).TotalSeconds;
+            nextFire += (float)(DateTime.Now - now).TotalSeconds;
+            now = DateTime.Now;
+            //healthBar.Update(mPosition);
             //model.UpdateExportedAnimation();
         }
 
@@ -111,7 +118,6 @@ namespace Graphics
             {
                 Bullet bullet = new Bullet(camera.GetCameraPosition(), camera.GetLookDirection());
                 bulletList.Add(bullet);
-                now = DateTime.Now;
                 nextFire = 0.0f;
             }
         }
