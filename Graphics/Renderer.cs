@@ -9,6 +9,7 @@ using Tao.OpenGl;
 using GlmNet;
 using System.IO;
 using Graphics._3D_Models;
+using System.Media;
 
 namespace Graphics
 {
@@ -28,7 +29,12 @@ namespace Graphics
         mat4 modelmatrix;
         
         uint vertexBufferID;
-        
+        uint screenBufferID;
+
+        //Start Screen
+        Screen startScreen;
+        Texture screenTex;
+        public bool started;
         // Skybox
         public float skyboxSize = 200.0f;
         Texture up;
@@ -37,7 +43,6 @@ namespace Graphics
         Texture right;
         Texture front;
         Texture back;
-
         // Player
         public Player hero;
         // Enemies
@@ -59,16 +64,24 @@ namespace Graphics
             string projectPath = Directory.GetParent(Environment.CurrentDirectory).Parent.FullName;
             sh = new Shader(projectPath + "\\Shaders\\SimpleVertexShader.vertexshader", projectPath + "\\Shaders\\SimpleFragmentShader.fragmentshader");
 
+            startScreen = new Screen("CALLofDUTY.jpg");
+            screenTex = startScreen.GetScreenTexture();
+            screenBufferID = GPU.GenerateBuffer(startScreen.GetScreenSquare());
+            started = false;
+
             float[] skybox = LoadSkybox(projectPath);
             vertexBufferID = GPU.GenerateBuffer(skybox);
 
             hero = new Player();
             enemiesList = new List<Enemy>();
             enemiesList.Add(new Enemy());
-            ObstaclesColliders = new List<AABoundingBox>();
+            enemiesList.Add(new Enemy());
+            enemiesList.Add(new Enemy());
+            enemiesList.Add(new Enemy());
+            enemiesList.Add(new Enemy());
             enemiesList.Add(new Enemy());
             bulletsList = new List<Bullet>();
-            enemiesList.Add(new Enemy());
+            ObstaclesColliders = new List<AABoundingBox>();
 
             //House
             house = new Model3D();
@@ -77,9 +90,7 @@ namespace Graphics
             AABoundingBox box = new AABoundingBox(house.GetCurrentVertices(), ColliderType.Obstacle);
             box.SetCenter(new vec3(20, 0, -10));
             ObstaclesColliders.Add(box);
-            ////////////////////////////
-            enemiesList.Add(new Enemy());
-            ///////////////////////////////
+
             //jeep
             jeep = new Model3D();
             jeep.LoadFile(projectPath + "\\ModelFiles\\models\\3DS\\jeep", 10, "jeep1.3ds");
@@ -90,9 +101,7 @@ namespace Graphics
             box.Scale(new vec3(0.3f, 0.3f, 0.3f));
             box.SetCenter(new vec3(14, 0, 0));
             ObstaclesColliders.Add(box);
-            ////////////////////////////
-            enemiesList.Add(new Enemy());
-            ///////////////////////////////
+
             //jeep2
             jeep2 = new Model3D();
             jeep2.LoadFile(projectPath + "\\ModelFiles\\models\\3DS\\jeep", 10, "jeep1.3ds");
@@ -103,9 +112,7 @@ namespace Graphics
             box.Scale(new vec3(0.3f, 0.3f, 0.3f));
             box.SetCenter(new vec3(26, 0, 0));
             ObstaclesColliders.Add(box);
-            ////////////////////////////
-            enemiesList.Add(new Enemy());
-            ///////////////////////////////
+
             //Weapon
             weaponTex = new Texture(projectPath + "\\Textures\\engineflare1.jpg", 7);
             Weapon = new Model3D();
@@ -152,53 +159,76 @@ namespace Graphics
 
         public void Draw()
         {
-            
             Gl.glClear(Gl.GL_COLOR_BUFFER_BIT|Gl.GL_DEPTH_BUFFER_BIT);
             sh.UseShader();
-
-            Gl.glUniformMatrix4fv(projID, 1, Gl.GL_FALSE, ProjectionMatrix.to_array());
-            Gl.glUniformMatrix4fv(viewID, 1, Gl.GL_FALSE, ViewMatrix.to_array());
-
-            Gl.glUniform3fv(EyePositionID, 1, hero.camera.GetCameraPosition().to_array());
-
-            hero.Draw(transID);
-            foreach (var enemy in enemiesList)
-            {                
-                enemy.Draw(transID);
-            }
-            foreach (var bullet in bulletsList)
+            
+            if (!started)
             {
-                bullet.Draw(transID);
+                hero.camera.UpdateViewMatrix();
+                ProjectionMatrix = hero.camera.GetProjectionMatrix();
+                ViewMatrix = hero.camera.GetViewMatrix();
+                Gl.glUniformMatrix4fv(projID, 1, Gl.GL_FALSE, ProjectionMatrix.to_array());
+                Gl.glUniformMatrix4fv(viewID, 1, Gl.GL_FALSE, ViewMatrix.to_array());
+                Gl.glUniform3fv(EyePositionID, 1, hero.camera.GetCameraPosition().to_array());
+
+                Gl.glBindBuffer(Gl.GL_ARRAY_BUFFER, screenBufferID);
+                Gl.glUniformMatrix4fv(transID, 1, Gl.GL_FALSE, modelmatrix.to_array());
+                Gl.glEnableVertexAttribArray(0);
+                Gl.glVertexAttribPointer(0, 3, Gl.GL_FLOAT, Gl.GL_FALSE, 11 * sizeof(float), IntPtr.Zero);
+                Gl.glEnableVertexAttribArray(1);
+                Gl.glVertexAttribPointer(1, 3, Gl.GL_FLOAT, Gl.GL_FALSE, 11 * sizeof(float), (IntPtr)(3 * sizeof(float)));
+                Gl.glEnableVertexAttribArray(2);
+                Gl.glVertexAttribPointer(2, 2, Gl.GL_FLOAT, Gl.GL_FALSE, 11 * sizeof(float), (IntPtr)(6 * sizeof(float)));
+                Gl.glEnableVertexAttribArray(3);
+                Gl.glVertexAttribPointer(3, 3, Gl.GL_FLOAT, Gl.GL_FALSE, 11 * sizeof(float), (IntPtr)(8 * sizeof(float)));
+                screenTex.Bind();
+                Gl.glDrawArrays(Gl.GL_TRIANGLES, 0, 6);
             }
+            else
+            {
+                Gl.glUniformMatrix4fv(projID, 1, Gl.GL_FALSE, ProjectionMatrix.to_array());
+                Gl.glUniformMatrix4fv(viewID, 1, Gl.GL_FALSE, ViewMatrix.to_array());
+                Gl.glUniform3fv(EyePositionID, 1, hero.camera.GetCameraPosition().to_array());
 
-            house.Draw(transID);
-            jeep.Draw(transID);
-            jeep2.Draw(transID);
-            weaponTex.Bind();
-            Weapon.Draw(transID);
+                hero.Draw(transID);
+                foreach (var enemy in enemiesList)
+                {
+                    enemy.Draw(transID);
+                }
+                foreach (var bullet in bulletsList)
+                {
+                    bullet.Draw(transID);
+                }
 
-            Gl.glBindBuffer(Gl.GL_ARRAY_BUFFER, vertexBufferID);
-            Gl.glUniformMatrix4fv(transID, 1, Gl.GL_FALSE, modelmatrix.to_array());
-            Gl.glEnableVertexAttribArray(0);
-            Gl.glVertexAttribPointer(0, 3, Gl.GL_FLOAT, Gl.GL_FALSE, 11 * sizeof(float), IntPtr.Zero);
-            Gl.glEnableVertexAttribArray(1);
-            Gl.glVertexAttribPointer(1, 3, Gl.GL_FLOAT, Gl.GL_FALSE, 11 * sizeof(float), (IntPtr)(3 * sizeof(float)));
-            Gl.glEnableVertexAttribArray(2);
-            Gl.glVertexAttribPointer(2, 2, Gl.GL_FLOAT, Gl.GL_FALSE, 11 * sizeof(float), (IntPtr)(6 * sizeof(float)));
-            Gl.glEnableVertexAttribArray(3);
-            Gl.glVertexAttribPointer(3, 3, Gl.GL_FLOAT, Gl.GL_FALSE, 11 * sizeof(float), (IntPtr)(8 * sizeof(float)));
-            up.Bind();
-            Gl.glDrawArrays(Gl.GL_TRIANGLES, 0, 6);
-            down.Bind();
-            Gl.glDrawArrays(Gl.GL_TRIANGLES, 6, 6);
-            left.Bind();
-            Gl.glDrawArrays(Gl.GL_TRIANGLES, 12, 6);
-            right.Bind();
-            Gl.glDrawArrays(Gl.GL_TRIANGLES, 18, 6);
-            front.Bind();
-            Gl.glDrawArrays(Gl.GL_TRIANGLES, 24, 6);
-            back.Bind();
-            Gl.glDrawArrays(Gl.GL_TRIANGLES, 30, 6);
+                house.Draw(transID);
+                jeep.Draw(transID);
+                jeep2.Draw(transID);
+                weaponTex.Bind();
+                Weapon.Draw(transID);
+
+                Gl.glBindBuffer(Gl.GL_ARRAY_BUFFER, vertexBufferID);
+                Gl.glUniformMatrix4fv(transID, 1, Gl.GL_FALSE, modelmatrix.to_array());
+                Gl.glEnableVertexAttribArray(0);
+                Gl.glVertexAttribPointer(0, 3, Gl.GL_FLOAT, Gl.GL_FALSE, 11 * sizeof(float), IntPtr.Zero);
+                Gl.glEnableVertexAttribArray(1);
+                Gl.glVertexAttribPointer(1, 3, Gl.GL_FLOAT, Gl.GL_FALSE, 11 * sizeof(float), (IntPtr)(3 * sizeof(float)));
+                Gl.glEnableVertexAttribArray(2);
+                Gl.glVertexAttribPointer(2, 2, Gl.GL_FLOAT, Gl.GL_FALSE, 11 * sizeof(float), (IntPtr)(6 * sizeof(float)));
+                Gl.glEnableVertexAttribArray(3);
+                Gl.glVertexAttribPointer(3, 3, Gl.GL_FLOAT, Gl.GL_FALSE, 11 * sizeof(float), (IntPtr)(8 * sizeof(float)));
+                up.Bind();
+                Gl.glDrawArrays(Gl.GL_TRIANGLES, 0, 6);
+                down.Bind();
+                Gl.glDrawArrays(Gl.GL_TRIANGLES, 6, 6);
+                left.Bind();
+                Gl.glDrawArrays(Gl.GL_TRIANGLES, 12, 6);
+                right.Bind();
+                Gl.glDrawArrays(Gl.GL_TRIANGLES, 18, 6);
+                front.Bind();
+                Gl.glDrawArrays(Gl.GL_TRIANGLES, 24, 6);
+                back.Bind();
+                Gl.glDrawArrays(Gl.GL_TRIANGLES, 30, 6);
+            }
         }
         public void Update(float deltaTime)
         {

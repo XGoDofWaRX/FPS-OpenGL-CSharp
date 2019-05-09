@@ -33,7 +33,8 @@ namespace Graphics
             while (true)
             {
                 renderer.Draw();
-                renderer.Update(deltaTime);
+                if(renderer.started)
+                    renderer.Update(deltaTime);
                 simpleOpenGlControl1.Refresh();
             }
         }
@@ -46,44 +47,56 @@ namespace Graphics
         private void simpleOpenGlControl1_Paint(object sender, PaintEventArgs e)
         {
             renderer.Draw();
-            renderer.Update(deltaTime);
+            if (renderer.started)
+                renderer.Update(deltaTime);
         }
 
         private void simpleOpenGlControl1_KeyPress(object sender, KeyPressEventArgs e)
         {
-            if (e.KeyChar == 'a')
-                renderer.hero.Strafe(-1, renderer.skyboxSize, renderer.ObstaclesColliders);
-            if (e.KeyChar == 'd')
-                renderer.hero.Strafe(1, renderer.skyboxSize, renderer.ObstaclesColliders);
-            if (e.KeyChar == 's')
-                renderer.hero.Walk(-1, renderer.skyboxSize, renderer.ObstaclesColliders);
-            if (e.KeyChar == 'w')
-                renderer.hero.Walk(1, renderer.skyboxSize, renderer.ObstaclesColliders);
-            if (e.KeyChar == 'z')
-                renderer.hero.camera.Fly(-1, renderer.skyboxSize);
-            if (e.KeyChar == 'c')
-                renderer.hero.camera.Fly(1, renderer.skyboxSize);
+            if (renderer.started)
+            {
+                if (e.KeyChar == 'a')
+                    renderer.hero.Strafe(-1, renderer.skyboxSize, renderer.ObstaclesColliders);
+                if (e.KeyChar == 'd')
+                    renderer.hero.Strafe(1, renderer.skyboxSize, renderer.ObstaclesColliders);
+                if (e.KeyChar == 's')
+                    renderer.hero.Walk(-1, renderer.skyboxSize, renderer.ObstaclesColliders);
+                if (e.KeyChar == 'w')
+                    renderer.hero.Walk(1, renderer.skyboxSize, renderer.ObstaclesColliders);
+                if (e.KeyChar == 'z')
+                    renderer.hero.camera.Fly(-1, renderer.skyboxSize);
+                if (e.KeyChar == 'c')
+                    renderer.hero.camera.Fly(1, renderer.skyboxSize);
 
-            if (e.KeyChar == 'f')
-                renderer.hero.Fire(renderer.bulletsList);
+                if (e.KeyChar == 'f')
+                    renderer.hero.Fire(renderer.bulletsList);
+            }
+            else
+            {
+                if (e.KeyChar == 'p')
+                    renderer.started = true;
+            }
         }
 
         float prevX, prevY;
         private void simpleOpenGlControl1_MouseMove(object sender, MouseEventArgs e)
         {
-            float speed = 0.05f;
-            float delta = e.X - prevX;
-            if (delta > 2)
-                renderer.hero.Yaw(-speed);
-            else if (delta < -2)
-                renderer.hero.Yaw(speed);
+            if (renderer.started)
+            {
+                float speed = 0.05f;
+                float delta = e.X - prevX;
+                if (delta > 2)
+                    renderer.hero.Yaw(-speed);
+                else if (delta < -2)
+                    renderer.hero.Yaw(speed);
 
 
-            delta = e.Y - prevY;
-            if (delta > 2)
-                renderer.hero.camera.Pitch(-speed);
-            else if (delta < -2)
-                renderer.hero.camera.Pitch(speed);
+                delta = e.Y - prevY;
+                if (delta > 2)
+                    renderer.hero.camera.Pitch(-speed);
+                else if (delta < -2)
+                    renderer.hero.camera.Pitch(speed);
+            }
 
             MoveCursor();
         }

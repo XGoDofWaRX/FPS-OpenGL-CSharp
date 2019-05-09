@@ -9,6 +9,7 @@ using Tao.OpenGl;
 using GlmNet;
 using System.IO;
 using Graphics._3D_Models;
+using System.Media;
 
 namespace Graphics
 {
@@ -28,10 +29,13 @@ namespace Graphics
         float nextFire;
         DateTime now;
 
+        SoundPlayer mySound;
+
         public Player()
         {            
             string projectPath = Directory.GetParent(Environment.CurrentDirectory).Parent.FullName;
             model = new md2LOL(projectPath + "\\ModelFiles\\zombie.md2");
+            mySound = new SoundPlayer(projectPath + "\\Textures\\fire.wav");
             Initialize();          
         }
 
@@ -119,6 +123,7 @@ namespace Graphics
                 Bullet bullet = new Bullet(camera.GetCameraPosition(), camera.GetLookDirection());
                 bulletList.Add(bullet);
                 nextFire = 0.0f;
+                mySound.Play();
             }
         }
 
