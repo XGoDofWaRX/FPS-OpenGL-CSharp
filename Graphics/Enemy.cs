@@ -16,6 +16,7 @@ namespace Graphics
     class Enemy
     {
         private float health;
+        private float damage;
         private bool dead;
         private float speed;
         private md2LOL model;
@@ -38,6 +39,7 @@ namespace Graphics
         public void Initialize()
         {
             health = 1.0f;
+            damage = 0.001f;
             dead = false;
             speed = 0.01f;
             mAngleX = 0;
@@ -58,6 +60,7 @@ namespace Graphics
 
             collider = new AABoundingBox(model.GetCurrentVertices(model.animSt), ColliderType.Enemy);
             collider.Scale(scale_vec);
+            collider.Scale(1.1f, 3.0f, 0);
             collider.SetCenter(mPosition);
 
             healthBar = new HealthBar(mPosition, health, HealthType.Enemy);
@@ -70,49 +73,55 @@ namespace Graphics
                 healthBar.drawHealth(health);
         }
 
-        public void Update(vec3 playerPos, float maxDist, List<AABoundingBox> objects)
-        {
+        public void Update(Player hero, float maxDist, List<AABoundingBox> objects)
+        {            
             if (!dead)
             {
-                vec3 playerDistance = playerPos - mPosition;
-                playerDistance.x = Math.Abs(playerDistance.x);
-                playerDistance.z = Math.Abs(playerDistance.z);
-
-                if (playerDistance.x < 1.0f && playerDistance.z < 1.0f)
+                if (state != EnemyStat.DYING)
                 {
-                    state = EnemyStat.ATTACKING;
-                    model.AnimationSpeed = 0.03f;
-                    if (model.animSt.type != animType_LOL.ATTACK1)
-                        model.StartAnimation(animType_LOL.ATTACK1);
+                    vec3 playerDistance = hero.GetPosition() - mPosition;
+                    playerDistance.x = Math.Abs(playerDistance.x);
+                    playerDistance.z = Math.Abs(playerDistance.z);
+
+                    if (playerDistance.x < 1.0f && playerDistance.z < 1.0f)
+                    {
+                        hero.Damage(damage);
+                        state = EnemyStat.ATTACKING;
+                        model.AnimationSpeed = 0.03f;
+                        if (model.animSt.type != animType_LOL.ATTACK1)
+                            model.StartAnimation(animType_LOL.ATTACK1);
+                    }
+                    else
+                    {
+                        state = EnemyStat.CHASING;
+                        model.AnimationSpeed = 0.003f;
+                        if (model.animSt.type != animType_LOL.RUN)
+                            model.StartAnimation(animType_LOL.RUN);
+                    }
+
+                    if (state == EnemyStat.CHASING)
+                    {
+                        Move(maxDist, objects);
+                    }
+
+                    ChangeDirection(hero.GetPosition());
+
+                    if (health <= 0)
+                    {
+                        state = EnemyStat.DYING;
+                        model.AnimationSpeed = 0.003f;
+                        if (model.animSt.type != animType_LOL.DEATH)
+                            model.StartAnimation(animType_LOL.DEATH);
+                    }
                 }
+
                 else
-                {
-                    state = EnemyStat.CHASING;
-                    model.AnimationSpeed = 0.003f;
-                    if (model.animSt.type != animType_LOL.RUN)
-                        model.StartAnimation(animType_LOL.RUN);
-                }
-
-                if (health <= 0 && state != EnemyStat.DYING)
-                {
-                    state = EnemyStat.DYING;
-                    model.AnimationSpeed = 0.003f;
-                    if (model.animSt.type != animType_LOL.DEATH)
-                        model.StartAnimation(animType_LOL.DEATH);
-                }
-
-                if (state == EnemyStat.CHASING)
-                {
-                    Move(maxDist, objects);
-                }
-                else if (state == EnemyStat.DYING)
                 {
                     if (model.animSt.curr_frame == model.animSt.endframe)
                     {
                         dead = true;
                     }
                 }
-                ChangeDirection(playerPos);
                 model.UpdateExportedAnimation();
                 //healthBar.Update(mPosition);
             }
@@ -190,6 +199,11 @@ namespace Graphics
                 }
             }
             return false;
+        }
+
+        public void Damage(float dmg)
+        {
+            health -= dmg;
         }
 
         public AABoundingBox GetCollider()

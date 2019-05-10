@@ -32,9 +32,14 @@ namespace Graphics
         {
             while (true)
             {
+                /*if (renderer.hero.isDead())
+                {
+                    this.Close();
+                }*/
+
                 renderer.Draw();
                 if(renderer.started)
-                    renderer.Update(deltaTime);
+                    renderer.Update(deltaTime);                
                 simpleOpenGlControl1.Refresh();
             }
         }

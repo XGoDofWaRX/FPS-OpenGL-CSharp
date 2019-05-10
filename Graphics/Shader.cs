@@ -56,7 +56,7 @@ namespace Graphics
                 StringBuilder il = new StringBuilder(bufSize);
                 Gl.glGetShaderInfoLog(vertexShaderID, bufSize, IntPtr.Zero, il);
                 string log = il.ToString();
-                MessageBox.Show("Error in vertex shader: \r\n" + log);
+                //MessageBox.Show("Error in vertex shader: \r\n" + log);
             }
 
             //Compiling fragment shader
@@ -85,7 +85,7 @@ namespace Graphics
                 StringBuilder il = new StringBuilder(bufSize);
                 Gl.glGetShaderInfoLog(fragmentShaderID, bufSize, IntPtr.Zero, il);
                 string log = il.ToString();
-                MessageBox.Show("Error in fragment shader: \r\n"+log);
+                //MessageBox.Show("Error in fragment shader: \r\n"+log);
             }
 
             //Linking the program
@@ -104,7 +104,7 @@ namespace Graphics
                 StringBuilder il = new StringBuilder(bufSize);
                 Gl.glGetProgramInfoLog(ProgramID, bufSize, IntPtr.Zero, il);
                 string log = il.ToString();
-                MessageBox.Show("Error in Linked Program: \r\n" + log);
+                //MessageBox.Show("Error in Linked Program: \r\n" + log);
             }
 
             Gl.glDeleteShader(vertexShaderID);

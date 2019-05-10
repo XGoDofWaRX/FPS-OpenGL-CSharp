@@ -59,11 +59,10 @@ namespace Graphics
             model.Draw(matID);
         }
 
-        public bool Update(List<AABoundingBox> objects)
-        {            
-            maxDistance -= speed;
+        public bool Update(List<AABoundingBox> objects, List<Enemy> enemies)
+        {                        
             Move();
-            if(FinishedMoving() || Collided(objects))
+            if(FinishedMoving() || Collided(objects, enemies))
             {
                 return true;
             }
@@ -72,6 +71,7 @@ namespace Graphics
 
         public void Move()
         {
+            maxDistance -= speed;
             vec3 translation_vector = speed * mDirection;
             mPosition += translation_vector;
             model.transmatrix = glm.translate(new mat4(1), new vec3(mPosition.x, mPosition.y, mPosition.z));
@@ -87,7 +87,7 @@ namespace Graphics
             return false;
         }
 
-        public bool Collided(List<AABoundingBox> objects)
+        public bool Collided(List<AABoundingBox> objects, List<Enemy> enemies)
         {
             for (int i = 0; i < objects.Count; i++)
             {
@@ -96,9 +96,21 @@ namespace Graphics
                     return true;
                 }
             }
+            for (int i = 0; i < enemies.Count; i++)
+            {
+                if (collider.CheckCollision(enemies[i].GetCollider(), new vec3(0)))
+                {
+                    enemies[i].Damage(damage);
+                    return true;
+                }
+            }
             return false;
         }
 
+        public void Destroy(float dist = 0.0f)
+        {
+            maxDistance = dist;
+        }
         public float GetDamage()
         {
             return damage;

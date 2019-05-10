@@ -35,7 +35,7 @@ namespace Graphics
         {            
             string projectPath = Directory.GetParent(Environment.CurrentDirectory).Parent.FullName;
             model = new md2LOL(projectPath + "\\ModelFiles\\zombie.md2");
-            mySound = new SoundPlayer(projectPath + "\\Textures\\fire.wav");
+            mySound = new SoundPlayer(projectPath + "\\Sounds\\fire.wav");
             Initialize();          
         }
 
@@ -76,6 +76,8 @@ namespace Graphics
             camera.UpdateViewMatrix();
             nextFire += (float)(DateTime.Now - now).TotalSeconds;
             now = DateTime.Now;
+            if (health <= 0)
+                dead = true;
             //healthBar.Update(mPosition);
             //model.UpdateExportedAnimation();
         }
@@ -137,6 +139,11 @@ namespace Graphics
                 }
             }
             return false;
+        }
+        
+        public void Damage(float dmg)
+        {
+            health -= dmg;
         }
 
         public bool isDead()

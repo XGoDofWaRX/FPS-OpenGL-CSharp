@@ -59,10 +59,13 @@ namespace Graphics
         // Colliders for Obstacles
         public List<AABoundingBox> ObstaclesColliders;
 
+        SoundPlayer mySound;
         public void Initialize()
         {
             string projectPath = Directory.GetParent(Environment.CurrentDirectory).Parent.FullName;
             sh = new Shader(projectPath + "\\Shaders\\SimpleVertexShader.vertexshader", projectPath + "\\Shaders\\SimpleFragmentShader.fragmentshader");
+            mySound = new SoundPlayer(projectPath + "\\Sounds\\ChillingMusic.wav");
+            mySound.PlayLooping();            
 
             startScreen = new Screen("CALLofDUTY.jpg");
             screenTex = startScreen.GetScreenTexture();
@@ -233,13 +236,18 @@ namespace Graphics
         public void Update(float deltaTime)
         {
             hero.Update();
-            foreach (var enemy in enemiesList)
+            for (int i = 0; i < enemiesList.Count; i++)
             {
-                enemy.Update(hero.GetPosition(), skyboxSize, ObstaclesColliders);
+                enemiesList[i].Update(hero, skyboxSize, ObstaclesColliders);
+                if(enemiesList[i].isDead())
+                {
+                    enemiesList.Remove(enemiesList[i]);
+                    i--;
+                }
             }
             for (int i = 0; i < bulletsList.Count; i++)
             {
-                if (bulletsList[i].Update(ObstaclesColliders))
+                if (bulletsList[i].Update(ObstaclesColliders, enemiesList))
                 {
                     bulletsList.Remove(bulletsList[i]);
                     i--;
